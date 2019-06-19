@@ -110,17 +110,17 @@ impl Vec4 {
 
     #[inline]
     pub fn y(self) -> f32 {
-        unsafe { _mm_cvtss_f32(_mm_shuffle_ps(self.0, self.0, 0b01_01_01_01)) }
+        unsafe { _mm_cvtss_f32(swizzle_sse2!(self.0, 0b01_01_01_01)) }
     }
 
     #[inline]
     pub fn z(self) -> f32 {
-        unsafe { _mm_cvtss_f32(_mm_shuffle_ps(self.0, self.0, 0b10_10_10_10)) }
+        unsafe { _mm_cvtss_f32(swizzle_sse2!(self.0, 0b10_10_10_10)) }
     }
 
     #[inline]
     pub fn w(self) -> f32 {
-        unsafe { _mm_cvtss_f32(_mm_shuffle_ps(self.0, self.0, 0b11_11_11_11)) }
+        unsafe { _mm_cvtss_f32(swizzle_sse2!(self.0, 0b11_11_11_11)) }
     }
 
     #[inline]
@@ -134,7 +134,7 @@ impl Vec4 {
     pub fn set_y(&mut self, y: f32) {
         unsafe {
             let mut t = _mm_move_ss(self.0, _mm_set_ss(y));
-            t = _mm_shuffle_ps(t, t, 0b11_10_00_00);
+            t = swizzle_sse2!(t, 0b11_10_00_00);
             self.0 = _mm_move_ss(t, self.0);
         }
     }
@@ -143,7 +143,7 @@ impl Vec4 {
     pub fn set_z(&mut self, z: f32) {
         unsafe {
             let mut t = _mm_move_ss(self.0, _mm_set_ss(z));
-            t = _mm_shuffle_ps(t, t, 0b11_00_01_00);
+            t = swizzle_sse2!(t, 0b11_00_01_00);
             self.0 = _mm_move_ss(t, self.0);
         }
     }
@@ -152,38 +152,38 @@ impl Vec4 {
     pub fn set_w(&mut self, w: f32) {
         unsafe {
             let mut t = _mm_move_ss(self.0, _mm_set_ss(w));
-            t = _mm_shuffle_ps(t, t, 0b00_10_01_00);
+            t = swizzle_sse2!(t, 0b00_10_01_00);
             self.0 = _mm_move_ss(t, self.0);
         }
     }
 
     #[inline]
     pub(crate) fn dup_x(self) -> Self {
-        unsafe { Self(_mm_shuffle_ps(self.0, self.0, 0b00_00_00_00)) }
+        unsafe { Self(swizzle_sse2!(self.0, 0b00_00_00_00)) }
     }
 
     #[inline]
     pub(crate) fn dup_y(self) -> Self {
-        unsafe { Self(_mm_shuffle_ps(self.0, self.0, 0b01_01_01_01)) }
+        unsafe { Self(swizzle_sse2!(self.0, 0b01_01_01_01)) }
     }
 
     #[inline]
     pub(crate) fn dup_z(self) -> Self {
-        unsafe { Self(_mm_shuffle_ps(self.0, self.0, 0b10_10_10_10)) }
+        unsafe { Self(swizzle_sse2!(self.0, 0b10_10_10_10)) }
     }
 
     #[inline]
     pub(crate) fn dup_w(self) -> Self {
-        unsafe { Self(_mm_shuffle_ps(self.0, self.0, 0b11_11_11_11)) }
+        unsafe { Self(swizzle_sse2!(self.0, 0b11_11_11_11)) }
     }
 
     #[inline]
     fn dot_as_vec4(self, rhs: Self) -> Self {
         unsafe {
             let x2_y2_z2_w2 = _mm_mul_ps(self.0, rhs.0);
-            let z2_w2_0_0 = _mm_shuffle_ps(x2_y2_z2_w2, x2_y2_z2_w2, 0b00_00_11_10);
+            let z2_w2_0_0 = swizzle_sse2!(x2_y2_z2_w2, 0b00_00_11_10);
             let x2z2_y2w2_0_0 = _mm_add_ps(x2_y2_z2_w2, z2_w2_0_0);
-            let y2w2_0_0_0 = _mm_shuffle_ps(x2z2_y2w2_0_0, x2z2_y2w2_0_0, 0b00_00_00_01);
+            let y2w2_0_0_0 = swizzle_sse2!(x2z2_y2w2_0_0, 0b00_00_00_01);
             let x2y2z2w2_0_0_0 = _mm_add_ps(x2z2_y2w2_0_0, y2w2_0_0_0);
             Self(x2y2z2w2_0_0_0)
         }
@@ -234,8 +234,8 @@ impl Vec4 {
     pub fn min_element(self) -> f32 {
         unsafe {
             let v = self.0;
-            let v = _mm_min_ps(v, _mm_shuffle_ps(v, v, 0b00_00_11_10));
-            let v = _mm_min_ps(v, _mm_shuffle_ps(v, v, 0b00_00_00_01));
+            let v = _mm_min_ps(v, swizzle_sse2!(v, 0b00_00_11_10));
+            let v = _mm_min_ps(v, swizzle_sse2!(v, 0b00_00_00_01));
             _mm_cvtss_f32(v)
         }
     }
@@ -244,8 +244,8 @@ impl Vec4 {
     pub fn max_element(self) -> f32 {
         unsafe {
             let v = self.0;
-            let v = _mm_max_ps(v, _mm_shuffle_ps(v, v, 0b00_00_11_10));
-            let v = _mm_max_ps(v, _mm_shuffle_ps(v, v, 0b00_00_00_01));
+            let v = _mm_max_ps(v, swizzle_sse2!(v, 0b00_00_11_10));
+            let v = _mm_max_ps(v, swizzle_sse2!(v, 0b00_00_00_01));
             _mm_cvtss_f32(v)
         }
     }

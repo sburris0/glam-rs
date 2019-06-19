@@ -6,6 +6,11 @@ use rand::{
     Rng,
 };
 
+#[cfg(target_arch = "x86")]
+use std::arch::x86::*;
+#[cfg(target_arch = "x86_64")]
+use std::arch::x86_64::*;
+
 use std::ops::{Add, Mul, Sub};
 
 pub fn mat2(x_axis: Vec2, y_axis: Vec2) -> Mat2 {
@@ -42,7 +47,12 @@ impl Mat2 {
     pub fn from_scale_angle(scale: Vec2, angle: Angle) -> Self {
         let (sin, cos) = angle.sin_cos();
         let (scale_x, scale_y) = scale.into();
-        Self(Vec4::new(cos * scale_x, sin * scale_x, -sin * scale_y, cos * scale_y))
+        Self(Vec4::new(
+            cos * scale_x,
+            sin * scale_x,
+            -sin * scale_y,
+            cos * scale_y,
+        ))
     }
 
     #[inline]
@@ -117,9 +127,28 @@ impl Mat2 {
 
     #[inline]
     pub fn mul_mat2(&self, rhs: &Self) -> Self {
-        // TODO: SSE2
-        let (x0, y0, x1, y1) = rhs.0.into();
-        Mat2::new(self.mul_vec2(Vec2::new(x0, y0)), self.mul_vec2(Vec2::new(x1, y1)))
+        #[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
+        {
+            unsafe {
+                let lhs: __m128 = self.0.into();
+                let rhs: __m128 = rhs.0.into();
+                Mat2(Vec4(_mm_add_ps(
+                    _mm_mul_ps(lhs, swizzle_sse2!(rhs, 0, 0, 3, 3)),
+                    _mm_mul_ps(
+                        swizzle_sse2!(lhs, 2, 3, 0, 1),
+                        swizzle_sse2!(rhs, 1, 1, 2, 2),
+                    ),
+                )))
+            }
+        }
+        #[cfg(not(all(target_feature = "sse2", not(feature = "scalar-math"))))]
+        {
+            let (x0, y0, x1, y1) = rhs.0.into();
+            Mat2::new(
+                self.mul_vec2(Vec2::new(x0, y0)),
+                self.mul_vec2(Vec2::new(x1, y1)),
+            )
+        }
     }
 
     #[inline]
