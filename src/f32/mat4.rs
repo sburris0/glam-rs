@@ -251,10 +251,14 @@ impl Mat4 {
         use std::arch::x86_64::*;
 
         unsafe {
-            let tmp0 = _mm_shuffle_ps(self.x_axis.0, self.y_axis.0, 0b01_00_01_00);
-            let tmp1 = _mm_shuffle_ps(self.x_axis.0, self.y_axis.0, 0b11_10_11_10);
-            let tmp2 = _mm_shuffle_ps(self.z_axis.0, self.w_axis.0, 0b01_00_01_00);
-            let tmp3 = _mm_shuffle_ps(self.z_axis.0, self.w_axis.0, 0b11_10_11_10);
+            let x_axis = self.x_axis.into();
+            let y_axis = self.y_axis.into();
+            let z_axis = self.z_axis.into();
+            let w_axis = self.w_axis.into();
+            let tmp0 = _mm_shuffle_ps(x_axis, y_axis, 0b01_00_01_00);
+            let tmp1 = _mm_shuffle_ps(x_axis, y_axis, 0b11_10_11_10);
+            let tmp2 = _mm_shuffle_ps(z_axis, w_axis, 0b01_00_01_00);
+            let tmp3 = _mm_shuffle_ps(z_axis, w_axis, 0b11_10_11_10);
 
             Self {
                 x_axis: _mm_shuffle_ps(tmp0, tmp2, 0b10_00_10_00).into(),
@@ -360,14 +364,14 @@ impl Mat4 {
         };
 
         let col0 = Vec4::new(
-            inverse.x_axis.x(),
-            inverse.y_axis.x(),
-            inverse.z_axis.x(),
-            inverse.w_axis.x(),
+            inverse.x_axis.x,
+            inverse.y_axis.x,
+            inverse.z_axis.x,
+            inverse.w_axis.x,
         );
 
         let dot0 = self.x_axis * col0;
-        let dot1 = dot0.x() + dot0.y() + dot0.z() + dot0.w();
+        let dot1 = dot0.x + dot0.y + dot0.z + dot0.w;
 
         let rcp_det = 1.0 / dot1;
         inverse * rcp_det

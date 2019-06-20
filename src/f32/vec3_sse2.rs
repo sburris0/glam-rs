@@ -85,7 +85,7 @@ impl Vec3 {
     #[inline]
     pub fn extend(self, w: f32) -> Vec4 {
         let mut temp: Vec4 = self.0.into();
-        temp.set_w(w);
+        temp.w = w;
         temp
     }
 

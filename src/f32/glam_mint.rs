@@ -61,8 +61,12 @@ impl From<mint::Vector4<f32>> for Vec4 {
 
 impl From<Vec4> for mint::Vector4<f32> {
     fn from(v: Vec4) -> Self {
-        let (x, y, z, w) = v.into();
-        Self { x, y, z, w }
+        Self {
+            x: v.x,
+            y: v.y,
+            z: v.z,
+            w: v.w,
+        }
     }
 }
 

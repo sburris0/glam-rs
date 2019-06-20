@@ -141,7 +141,7 @@ impl Quat {
     #[inline]
     pub fn conjugate(self) -> Self {
         let v: Vec4 = self.into();
-        v.truncate().neg().extend(v.w()).into()
+        v.truncate().neg().extend(v.w).into()
     }
 
     #[inline]

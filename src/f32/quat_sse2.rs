@@ -96,14 +96,14 @@ impl Quat {
 impl From<Vec4> for Quat {
     #[inline]
     fn from(v: Vec4) -> Self {
-        Self(v.0)
+        unsafe { *(&v as *const Vec4 as *const Self) }
     }
 }
 
 impl From<Quat> for Vec4 {
     #[inline]
     fn from(q: Quat) -> Self {
-        Self(q.0)
+        unsafe { *(&q as *const Quat as *const Self) }
     }
 }
 

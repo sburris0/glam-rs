@@ -90,25 +90,22 @@ impl Mat2 {
 
     #[inline]
     pub fn transpose(&self) -> Self {
-        let (m00, m01, m10, m11) = self.0.into();
-        Self(Vec4::new(m00, m10, m01, m11))
+        Self(Vec4::new(self.0.x, self.0.z, self.0.y, self.0.w))
     }
 
     #[inline]
     pub fn determinant(&self) -> f32 {
         // TODO: SSE2
-        let (a, b, c, d) = self.0.into();
-        a * d - b * c
+        self.0.x * self.0.w - self.0.y * self.0.z
     }
 
     #[inline]
     pub fn inverse(&self) -> Self {
         // TODO: SSE2
-        let (a, b, c, d) = self.0.into();
-        let det = a * d - b * c;
+        let det = self.determinant();
         debug_assert!(det != 0.0);
         let tmp = Vec4::new(1.0, -1.0, -1.0, 1.0) / det;
-        Self(Vec4::new(d, b, c, a) * tmp)
+        Self(Vec4::new(self.0.w, self.0.y, self.0.z, self.0.x) * tmp)
     }
 
     #[inline]
@@ -116,8 +113,7 @@ impl Mat2 {
         // TODO: SSE2
         let rhs = Vec4::new(rhs.x(), rhs.x(), rhs.y(), rhs.y());
         let tmp = self.0 * rhs;
-        let (x0, y0, x1, y1) = tmp.into();
-        Vec2::new(x0 + x1, y0 + y1)
+        Vec2::new(tmp.x + tmp.z, tmp.y + tmp.w)
     }
 
     #[inline]

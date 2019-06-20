@@ -17,10 +17,6 @@ mod vec3_f32;
 #[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
 mod vec3_sse2;
 mod vec4;
-#[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
-mod vec4_f32;
-#[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
-mod vec4_sse2;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod x86_utils;
 
@@ -43,10 +39,6 @@ pub use vec3_f32::*;
 #[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
 pub use vec3_sse2::*;
 pub use vec4::*;
-#[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
-pub use vec4_f32::*;
-#[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
-pub use vec4_sse2::*;
 
 #[cfg(feature = "approx")]
 mod glam_approx;

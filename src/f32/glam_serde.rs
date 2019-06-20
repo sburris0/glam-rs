@@ -42,13 +42,12 @@ impl Serialize for Vec4 {
     where
         S: Serializer,
     {
-        let (x, y, z, w) = (*self).into();
         // 4 is the number of fields in the struct.
         let mut state = serializer.serialize_tuple_struct("Vec4", 4)?;
-        state.serialize_field(&x)?;
-        state.serialize_field(&y)?;
-        state.serialize_field(&z)?;
-        state.serialize_field(&w)?;
+        state.serialize_field(&self.x)?;
+        state.serialize_field(&self.y)?;
+        state.serialize_field(&self.z)?;
+        state.serialize_field(&self.w)?;
         state.end()
     }
 }

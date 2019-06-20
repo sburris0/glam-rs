@@ -19,10 +19,10 @@ fn test_vec4_align() {
 fn test_vec4_new() {
     let v = vec4(1.0, 2.0, 3.0, 4.0);
 
-    assert_eq!(v.x(), 1.0);
-    assert_eq!(v.y(), 2.0);
-    assert_eq!(v.z(), 3.0);
-    assert_eq!(v.w(), 4.0);
+    assert_eq!(v.x, 1.0);
+    assert_eq!(v.y, 2.0);
+    assert_eq!(v.z, 3.0);
+    assert_eq!(v.w, 4.0);
 
     let t = (1.0, 2.0, 3.0, 4.0);
     let v = Vec4::from(t);
@@ -46,10 +46,10 @@ fn test_vec4_new() {
 fn test_vec4_fmt() {
     let a = Vec4::new(1.0, 2.0, 3.0, 4.0);
     assert_eq!(format!("{:?}", a), "Vec4(1.0, 2.0, 3.0, 4.0)");
-    // assert_eq!(
-    //     format!("{:#?}", a),
-    //     "Vec4(\n    1.0,\n    2.0,\n    3.0,\n    4.0\n)"
-    // );
+    assert_eq!(
+        format!("{:#?}", a),
+        "Vec4(\n    1.0,\n    2.0,\n    3.0,\n    4.0,\n)"
+    );
     assert_eq!(format!("{}", a), "(1, 2, 3, 4)");
 }
 
@@ -69,14 +69,14 @@ fn test_vec4_splat() {
 #[test]
 fn test_vec4_accessors() {
     let mut a = vec4(0.0, 0.0, 0.0, 0.0);
-    a.set_x(1.0);
-    a.set_y(2.0);
-    a.set_z(3.0);
-    a.set_w(4.0);
-    assert_eq!(1.0, a.x());
-    assert_eq!(2.0, a.y());
-    assert_eq!(3.0, a.z());
-    assert_eq!(4.0, a.w());
+    a.x = 1.0;
+    a.y = 2.0;
+    a.z = 3.0;
+    a.w = 4.0;
+    assert_eq!(1.0, a.x);
+    assert_eq!(2.0, a.y);
+    assert_eq!(3.0, a.z);
+    assert_eq!(4.0, a.w);
     assert_eq!((1.0, 2.0, 3.0, 4.0), a.into());
 }
 
