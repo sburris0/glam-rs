@@ -161,12 +161,12 @@ impl Vec4Swizzles for Vec4 {{"#
 
         #[cfg(vec4_f32)]
         {{
-            Vec4 {{
-                x: self.{},
-                y: self.{},
-                z: self.{},
-                w: self.{},
-            }}
+            Vec4::new(
+                self.{},
+                self.{},
+                self.{},
+                self.{},
+            )
         }}
     }}"#,
                 E[e0], E[e1], E[e2], E[e3], B[e3], B[e2], B[e1], B[e0], E[e0], E[e1], E[e2], E[e3],
