@@ -189,9 +189,9 @@ compile_error!("`bytemuck` feature is not supported when building for SPIRV");
 #[macro_use]
 mod macros;
 
-mod vector_traits;
 mod scalar_traits;
 mod storage;
+mod vector_traits;
 
 #[doc(hidden)]
 pub mod f32;

@@ -1,3 +1,4 @@
+use crate::vector_traits::{Mask4, Mask4Consts};
 use crate::Vec4;
 #[cfg(not(target_arch = "spirv"))]
 use core::fmt;
@@ -10,31 +11,33 @@ use core::arch::x86_64::*;
 #[cfg(vec4_sse2)]
 use core::{cmp::Ordering, hash};
 
+#[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
+type Inner = __m128;
+
+#[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
+type Inner = crate::XYZW<bool>;
+
+#[cfg(not(doc))]
+#[derive(Clone, Copy)]
+#[cfg_attr(not(target_arch = "spirv"), repr(C))]
+#[cfg_attr(target_arch = "spirv", repr(simd))]
+pub struct Vec4Mask(pub(crate) Inner);
+
 /// A 4-dimensional vector mask.
 ///
 /// This type is typically created by comparison methods on `Vec4`.  It is
 /// essentially a vector of four boolean values.
-#[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
-#[derive(Clone, Copy)]
+#[cfg(doc)]
 #[repr(C)]
-pub struct Vec4Mask(pub(crate) __m128);
+pub struct Vec4Mask(bool, bool, bool, bool);
 
-#[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
-#[derive(Clone, Copy, Default, PartialEq, Eq, Ord, PartialOrd, Hash)]
-#[cfg_attr(not(feature = "scalar-math"), repr(align(16)))]
-#[cfg_attr(not(target_arch = "spirv"), repr(C))]
-#[cfg_attr(target_arch = "spirv", repr(simd))]
-pub struct Vec4Mask(u32, u32, u32, u32);
-
-#[cfg(vec4_sse2)]
 impl Default for Vec4Mask {
     #[inline]
     fn default() -> Self {
-        unsafe { Self(_mm_setzero_ps()) }
+        Self(Inner::FALSE)
     }
 }
 
-#[cfg(vec4_sse2)]
 impl PartialEq for Vec4Mask {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
@@ -42,10 +45,8 @@ impl PartialEq for Vec4Mask {
     }
 }
 
-#[cfg(vec4_sse2)]
 impl Eq for Vec4Mask {}
 
-#[cfg(vec4_sse2)]
 impl Ord for Vec4Mask {
     #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
@@ -53,7 +54,6 @@ impl Ord for Vec4Mask {
     }
 }
 
-#[cfg(vec4_sse2)]
 impl PartialOrd for Vec4Mask {
     #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
@@ -61,7 +61,6 @@ impl PartialOrd for Vec4Mask {
     }
 }
 
-#[cfg(vec4_sse2)]
 impl hash::Hash for Vec4Mask {
     #[inline]
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
@@ -73,30 +72,7 @@ impl Vec4Mask {
     /// Creates a new `Vec4Mask`.
     #[inline]
     pub fn new(x: bool, y: bool, z: bool, w: bool) -> Self {
-        // A SSE2 mask can be any bit pattern but for the `Vec4Mask` implementation of select we
-        // expect either 0 or 0xff_ff_ff_ff. This should be a safe assumption as this type can only
-        // be created via this function or by `Vec4` methods.
-
-        const MASK: [u32; 2] = [0, 0xff_ff_ff_ff];
-        #[cfg(vec4_sse2)]
-        unsafe {
-            Self(_mm_set_ps(
-                f32::from_bits(MASK[w as usize]),
-                f32::from_bits(MASK[z as usize]),
-                f32::from_bits(MASK[y as usize]),
-                f32::from_bits(MASK[x as usize]),
-            ))
-        }
-
-        #[cfg(vec4_f32)]
-        {
-            Self(
-                MASK[x as usize],
-                MASK[y as usize],
-                MASK[z as usize],
-                MASK[w as usize],
-            )
-        }
+        Self(Mask4::new(x, y, z, w))
     }
 
     /// Returns a bitmask with the lowest four bits set from the elements of `self`.
@@ -105,18 +81,7 @@ impl Vec4Mask {
     /// into the first lowest bit, element `y` into the second, etc.
     #[inline]
     pub fn bitmask(self) -> u32 {
-        // _mm_movemask_ps only checks the most significant bit of the u32 is true, so we replicate
-        // that here with the non-SSE2 version.
-
-        #[cfg(vec4_sse2)]
-        unsafe {
-            _mm_movemask_ps(self.0) as u32
-        }
-
-        #[cfg(vec4_f32)]
-        {
-            (self.0 & 0x1) | (self.1 & 0x1) << 1 | (self.2 & 0x1) << 2 | (self.3 & 0x1) << 3
-        }
+        self.0.bitmask()
     }
 
     /// Returns true if any of the elements are true, false otherwise.
@@ -124,15 +89,7 @@ impl Vec4Mask {
     /// In other words: `x || y || z || w`.
     #[inline]
     pub fn any(self) -> bool {
-        #[cfg(vec4_sse2)]
-        unsafe {
-            _mm_movemask_ps(self.0) != 0
-        }
-
-        #[cfg(vec4_f32)]
-        {
-            ((self.0 | self.1 | self.2 | self.3) & 0x1) != 0
-        }
+        self.0.any()
     }
 
     /// Returns true if all the elements are true, false otherwise.
@@ -140,15 +97,7 @@ impl Vec4Mask {
     /// In other words: `x && y && z && w`.
     #[inline]
     pub fn all(self) -> bool {
-        #[cfg(vec4_sse2)]
-        unsafe {
-            _mm_movemask_ps(self.0) == 0xf
-        }
-
-        #[cfg(vec4_f32)]
-        {
-            ((self.0 & self.1 & self.2 & self.3) & 0x1) != 0
-        }
+        self.0.all()
     }
 
     /// Creates a `Vec4` from the elements in `if_true` and `if_false`, selecting which to use for
@@ -158,26 +107,7 @@ impl Vec4Mask {
     /// the element from `if_false`.
     #[inline]
     pub fn select(self, if_true: Vec4, if_false: Vec4) -> Vec4 {
-        // We are assuming that the mask values are either 0 or 0xff_ff_ff_ff for the SSE2 and f32
-        // to behave the same here.
-
-        #[cfg(vec4_sse2)]
-        unsafe {
-            Vec4(_mm_or_ps(
-                _mm_andnot_ps(self.0, if_false.0),
-                _mm_and_ps(if_true.0, self.0),
-            ))
-        }
-
-        #[cfg(vec4_f32)]
-        {
-            Vec4 {
-                x: if self.0 != 0 { if_true.x } else { if_false.x },
-                y: if self.1 != 0 { if_true.y } else { if_false.y },
-                z: if self.2 != 0 { if_true.z } else { if_false.z },
-                w: if self.3 != 0 { if_true.w } else { if_false.w },
-            }
-        }
+        Vec4::select(self, if_true, if_false)
     }
 }
 
@@ -185,38 +115,14 @@ impl BitAnd for Vec4Mask {
     type Output = Self;
     #[inline]
     fn bitand(self, other: Self) -> Self {
-        #[cfg(vec4_sse2)]
-        unsafe {
-            Self(_mm_and_ps(self.0, other.0))
-        }
-
-        #[cfg(vec4_f32)]
-        {
-            Self(
-                self.0 & other.0,
-                self.1 & other.1,
-                self.2 & other.2,
-                self.3 & other.3,
-            )
-        }
+        Self(self.0.and(other.0))
     }
 }
 
 impl BitAndAssign for Vec4Mask {
     #[inline]
     fn bitand_assign(&mut self, other: Self) {
-        #[cfg(vec4_sse2)]
-        {
-            self.0 = unsafe { _mm_and_ps(self.0, other.0) };
-        }
-
-        #[cfg(vec4_f32)]
-        {
-            self.0 &= other.0;
-            self.1 &= other.1;
-            self.2 &= other.2;
-            self.3 &= other.3;
-        }
+        self.0 = self.0.and(other.0);
     }
 }
 
@@ -224,38 +130,14 @@ impl BitOr for Vec4Mask {
     type Output = Self;
     #[inline]
     fn bitor(self, other: Self) -> Self {
-        #[cfg(vec4_sse2)]
-        unsafe {
-            Self(_mm_or_ps(self.0, other.0))
-        }
-
-        #[cfg(vec4_f32)]
-        {
-            Self(
-                self.0 | other.0,
-                self.1 | other.1,
-                self.2 | other.2,
-                self.3 | other.3,
-            )
-        }
+        Self(self.0.or(other.0))
     }
 }
 
 impl BitOrAssign for Vec4Mask {
     #[inline]
     fn bitor_assign(&mut self, other: Self) {
-        #[cfg(vec4_sse2)]
-        {
-            self.0 = unsafe { _mm_or_ps(self.0, other.0) };
-        }
-
-        #[cfg(vec4_f32)]
-        {
-            self.0 |= other.0;
-            self.1 |= other.1;
-            self.2 |= other.2;
-            self.3 |= other.3;
-        }
+        self.0 = self.0.or(other.0);
     }
 }
 
@@ -263,18 +145,7 @@ impl Not for Vec4Mask {
     type Output = Self;
     #[inline]
     fn not(self) -> Self {
-        #[cfg(vec4_sse2)]
-        unsafe {
-            Self(_mm_andnot_ps(
-                self.0,
-                _mm_set_ps1(f32::from_bits(0xff_ff_ff_ff)),
-            ))
-        }
-
-        #[cfg(vec4_f32)]
-        {
-            Self(!self.0, !self.1, !self.2, !self.3)
-        }
+        Self(self.0.not())
     }
 }
 
