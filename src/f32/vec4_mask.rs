@@ -4,10 +4,19 @@ use crate::Vec4;
 use core::fmt;
 use core::ops::*;
 
-#[cfg(all(vec4_sse2, target_arch = "x86"))]
+#[cfg(all(
+    target_arch = "x86",
+    target_feature = "sse2",
+    not(feature = "scalar-math")
+))]
 use core::arch::x86::*;
-#[cfg(all(vec4_sse2, target_arch = "x86_64"))]
+#[cfg(all(
+    target_arch = "x86_64",
+    target_feature = "sse2",
+    not(feature = "scalar-math")
+))]
 use core::arch::x86_64::*;
+
 use core::{cmp::Ordering, hash};
 
 #[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
@@ -28,7 +37,7 @@ pub struct Vec4Mask(pub(crate) Inner);
 /// essentially a vector of four boolean values.
 #[cfg(doc)]
 #[repr(C)]
-pub struct Vec4Mask(bool, bool, bool, bool);
+pub struct Vec4Mask(u32, u32, u32, u32);
 
 impl Default for Vec4Mask {
     #[inline]
