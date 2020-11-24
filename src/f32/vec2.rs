@@ -1,7 +1,7 @@
 #[cfg(feature = "num-traits")]
 use num_traits::Float;
 
-use crate::f32::{Vec2Mask, Vec3};
+use crate::{Vec2Mask, Vec3};
 #[cfg(not(target_arch = "spirv"))]
 use core::fmt;
 use core::{f32, ops::*};

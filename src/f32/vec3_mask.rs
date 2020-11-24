@@ -1,4 +1,4 @@
-use super::Vec3;
+use crate::Vec3;
 #[cfg(not(target_arch = "spirv"))]
 use core::fmt;
 use core::ops::*;

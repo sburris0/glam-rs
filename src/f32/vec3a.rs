@@ -3,7 +3,7 @@ use num_traits::Float;
 
 use crate::vector_traits::*;
 
-use super::{Vec2, Vec3, Vec3AMask, Vec4};
+use crate::{Vec2, Vec3, Vec3AMask, Vec4};
 #[cfg(not(target_arch = "spirv"))]
 use core::fmt;
 use core::ops::*;
