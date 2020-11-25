@@ -2,9 +2,7 @@ use super::scalar_sin_cos;
 use crate::{Quat, Vec2, Vec3, Vec3A, Vec3ASwizzles, XYZ};
 #[cfg(not(target_arch = "spirv"))]
 use core::fmt;
-use core::{
-    ops::{Add, Mul, Sub},
-};
+use core::ops::{Add, Mul, Sub};
 
 #[cfg(feature = "std")]
 use std::iter::{Product, Sum};

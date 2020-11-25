@@ -1,32 +1,71 @@
 #[cfg(feature = "num-traits")]
 use num_traits::Float;
 
-use crate::{Vec2Mask, Vec3};
+use crate::vector_traits::*;
+use crate::{Vec2Mask, Vec3, XY};
 #[cfg(not(target_arch = "spirv"))]
 use core::fmt;
-use core::{f32, ops::*};
+use core::{cmp::Ordering, f32, ops::*};
 
 #[cfg(feature = "std")]
 use std::iter::{Product, Sum};
 
-const ZERO: Vec2 = const_vec2!([0.0; 2]);
-const ONE: Vec2 = const_vec2!([1.0; 2]);
-const X_AXIS: Vec2 = const_vec2!([1.0, 0.0]);
-const Y_AXIS: Vec2 = const_vec2!([0.0, 1.0]);
+type Inner = XY<f32>;
 
-/// A 2-dimensional vector.
-#[derive(Clone, Copy, PartialEq, PartialOrd, Default)]
+#[cfg(not(doc))]
+#[derive(Clone, Copy)]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
 #[cfg_attr(target_arch = "spirv", repr(simd))]
+pub struct Vec2(pub(crate) Inner);
+
+#[cfg(doc)]
+#[derive(Clone, Copy)]
+#[repr(C)]
+/// A 2-dimensional vector.
 pub struct Vec2 {
     pub x: f32,
     pub y: f32,
 }
 
+impl Default for Vec2 {
+    #[inline]
+    fn default() -> Self {
+        Self(Inner::ZERO)
+    }
+}
+
+impl PartialEq for Vec2 {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.cmpeq(*other).all()
+    }
+}
+
+impl PartialOrd for Vec2 {
+    #[inline]
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.as_ref().partial_cmp(other.as_ref())
+    }
+}
+
+impl From<Vec2> for Inner {
+    #[inline]
+    fn from(t: Vec2) -> Self {
+        t.0
+    }
+}
+
+impl From<Inner> for Vec2 {
+    #[inline]
+    fn from(t: Inner) -> Self {
+        Self(t)
+    }
+}
+
 /// Creates a `Vec2`.
 #[inline]
 pub fn vec2(x: f32, y: f32) -> Vec2 {
-    Vec2 { x, y }
+    Vec2::new(x, y)
 }
 
 impl Vec2 {
@@ -35,7 +74,7 @@ impl Vec2 {
     /// In other words, this computes `[x.is_nan(), y.is_nan()]`.
     #[inline]
     pub fn is_nan_mask(self) -> Vec2Mask {
-        Vec2Mask::new(self.x.is_nan(), self.y.is_nan())
+        Vec2Mask(self.0.is_nan())
     }
 
     /// Returns a `Vec2` with elements representing the sign of `self`.
@@ -45,19 +84,13 @@ impl Vec2 {
     /// - `NAN` if the number is `NAN`
     #[inline]
     pub fn signum(self) -> Self {
-        Self {
-            x: self.x.signum(),
-            y: self.y.signum(),
-        }
+        Self(self.0.signum())
     }
 
     /// Returns a `Vec2` containing the reciprocal `1.0/n` of each element of `self`.
     #[inline]
     pub fn recip(self) -> Self {
-        Self {
-            x: self.x.recip(),
-            y: self.y.recip(),
-        }
+        Self(self.0.recip())
     }
 
     /// Performs a linear interpolation between `self` and `other` based on
@@ -108,40 +141,50 @@ impl Vec2 {
     /// Creates a new `Vec2`.
     #[inline]
     pub fn new(x: f32, y: f32) -> Vec2 {
-        Vec2 { x, y }
+        Self(Vector2::new(x, y))
     }
 
     /// Creates a `Vec2` with all elements set to `0.0`.
     #[inline]
     pub const fn zero() -> Vec2 {
-        ZERO
+        Self(Inner::ZERO)
     }
 
     /// Creates a `Vec2` with all elements set to `1.0`.
     #[inline]
     pub const fn one() -> Vec2 {
-        ONE
+        Self(Inner::ONE)
     }
 
     /// Creates a `Vec2` with values `[x: 1.0, y: 0.0]`.
     #[inline]
     pub const fn unit_x() -> Vec2 {
-        X_AXIS
+        Self(Inner::UNIT_X)
     }
 
     /// Creates a `Vec2` with values `[x: 0.0, y: 1.0]`.
     #[inline]
     pub const fn unit_y() -> Vec2 {
-        Y_AXIS
+        Self(Inner::UNIT_Y)
     }
 
     /// Creates a `Vec2` with all elements set to `v`.
     #[inline]
     pub fn splat(v: f32) -> Vec2 {
-        Self { x: v, y: v }
+        Self(Inner::splat(v))
     }
 
-    /// Creates a `Vec3` from `self` and the given `z` value.
+    /// Creates a `Vec2` from the elements in `if_true` and `if_false`, selecting which to use for
+    /// each element of `self`.
+    ///
+    /// A true element in the mask uses the corresponding element from `if_true`, and false uses
+    /// the element from `if_false`.
+    #[inline]
+    pub fn select(mask: Vec2Mask, if_true: Vec2, if_false: Vec2) -> Vec2 {
+        Self(Inner::select(mask.0, if_true.0, if_false.0))
+    }
+
+    /// Creates a `Vec2` from `self` and the given `z` value.
     #[inline]
     pub fn extend(self, z: f32) -> Vec3 {
         Vec3::new(self.x, self.y, z)
@@ -150,7 +193,7 @@ impl Vec2 {
     /// Computes the dot product of `self` and `other`.
     #[inline]
     pub fn dot(self, other: Vec2) -> f32 {
-        (self.x * other.x) + (self.y * other.y)
+        FloatVector2::dot(self.0, other.0)
     }
 
     /// Computes the length of `self`.
@@ -203,10 +246,7 @@ impl Vec2 {
     /// taking the minimum of each element individually.
     #[inline]
     pub fn min(self, other: Vec2) -> Vec2 {
-        Self {
-            x: self.x.min(other.x),
-            y: self.y.min(other.y),
-        }
+        Self(self.0.min(other.0))
     }
 
     /// Returns the vertical maximum of `self` and `other`.
@@ -216,10 +256,7 @@ impl Vec2 {
     /// taking the maximum of each element individually.
     #[inline]
     pub fn max(self, other: Vec2) -> Vec2 {
-        Self {
-            x: self.x.max(other.x),
-            y: self.y.max(other.y),
-        }
+        Self(self.0.max(other.0))
     }
 
     /// Returns the horizontal minimum of `self`'s elements.
@@ -227,7 +264,7 @@ impl Vec2 {
     /// In other words, this computes `min(x, y)`.
     #[inline]
     pub fn min_element(self) -> f32 {
-        self.x.min(self.y)
+        self.0.min_element()
     }
 
     /// Returns the horizontal maximum of `self`'s elements.
@@ -235,7 +272,7 @@ impl Vec2 {
     /// In other words, this computes `max(x, y)`.
     #[inline]
     pub fn max_element(self) -> f32 {
-        self.x.max(self.y)
+        self.0.max_element()
     }
 
     /// Performs a vertical `==` comparison between `self` and `other`,
@@ -244,7 +281,7 @@ impl Vec2 {
     /// In other words, this computes `[x1 == x2, y1 == y2]`.
     #[inline]
     pub fn cmpeq(self, other: Vec2) -> Vec2Mask {
-        Vec2Mask::new(self.x.eq(&other.x), self.y.eq(&other.y))
+        Vec2Mask(self.0.cmpeq(other.0))
     }
 
     /// Performs a vertical `!=` comparison between `self` and `other`,
@@ -253,7 +290,7 @@ impl Vec2 {
     /// In other words, this computes `[x1 != x2, y1 != y2]`.
     #[inline]
     pub fn cmpne(self, other: Vec2) -> Vec2Mask {
-        Vec2Mask::new(self.x.ne(&other.x), self.y.ne(&other.y))
+        Vec2Mask(self.0.cmpne(other.0))
     }
 
     /// Performs a vertical `>=` comparison between `self` and `other`,
@@ -262,7 +299,7 @@ impl Vec2 {
     /// In other words, this computes `[x1 >= x2, y1 >= y2]`.
     #[inline]
     pub fn cmpge(self, other: Vec2) -> Vec2Mask {
-        Vec2Mask::new(self.x.ge(&other.x), self.y.ge(&other.y))
+        Vec2Mask(self.0.cmpge(other.0))
     }
 
     /// Performs a vertical `>` comparison between `self` and `other`,
@@ -271,7 +308,7 @@ impl Vec2 {
     /// In other words, this computes `[x1 > x2, y1 > y2]`.
     #[inline]
     pub fn cmpgt(self, other: Vec2) -> Vec2Mask {
-        Vec2Mask::new(self.x.gt(&other.x), self.y.gt(&other.y))
+        Vec2Mask(self.0.cmpgt(other.0))
     }
 
     /// Performs a vertical `<=` comparison between `self` and `other`,
@@ -280,7 +317,7 @@ impl Vec2 {
     /// In other words, this computes `[x1 <= x2, y1 <= y2]`.
     #[inline]
     pub fn cmple(self, other: Vec2) -> Vec2Mask {
-        Vec2Mask::new(self.x.le(&other.x), self.y.le(&other.y))
+        Vec2Mask(self.0.cmple(other.0))
     }
 
     /// Performs a vertical `<` comparison between `self` and `other`,
@@ -289,7 +326,7 @@ impl Vec2 {
     /// In other words, this computes `[x1 < x2, y1 < y2]`.
     #[inline]
     pub fn cmplt(self, other: Vec2) -> Vec2Mask {
-        Vec2Mask::new(self.x.lt(&other.x), self.y.lt(&other.y))
+        Vec2Mask(self.0.cmplt(other.0))
     }
 
     /// Creates a `Vec2` from the first two values in `slice`.
@@ -299,10 +336,7 @@ impl Vec2 {
     /// Panics if `slice` is less than two elements long.
     #[inline]
     pub fn from_slice_unaligned(slice: &[f32]) -> Self {
-        Self {
-            x: slice[0],
-            y: slice[1],
-        }
+        Self(Inner::from_slice_unaligned(slice))
     }
 
     /// Writes the elements of `self` to the first two elements in `slice`.
@@ -312,80 +346,58 @@ impl Vec2 {
     /// Panics if `slice` is less than two elements long.
     #[inline]
     pub fn write_to_slice_unaligned(self, slice: &mut [f32]) {
-        slice[0] = self.x;
-        slice[1] = self.y;
+        self.0.write_to_slice_unaligned(slice)
     }
 
     /// Returns a `Vec2` containing the absolute value of each element of `self`.
     #[inline]
     pub fn abs(self) -> Self {
-        Self {
-            x: self.x.abs(),
-            y: self.y.abs(),
-        }
+        Self(self.0.abs())
     }
 
     /// Returns a `Vec2` containing the nearest integer to a number for each element of `self`.
     /// Round half-way cases away from 0.0.
     #[inline]
     pub fn round(self) -> Self {
-        Self {
-            x: self.x.round(),
-            y: self.y.round(),
-        }
+        Self(self.0.round())
     }
 
     /// Returns a `Vec2` containing the largest integer less than or equal to a number for each
     /// element of `self`.
     #[inline]
     pub fn floor(self) -> Self {
-        Self {
-            x: self.x.floor(),
-            y: self.y.floor(),
-        }
+        Self(self.0.floor())
     }
 
     /// Returns a `Vec2` containing the smallest integer greater than or equal to a number for each
     /// element of `self`.
     #[inline]
     pub fn ceil(self) -> Self {
-        Self {
-            x: self.x.ceil(),
-            y: self.y.ceil(),
-        }
+        Self(self.0.ceil())
     }
 
     /// Returns a `Vec2` containing `e^self` (the exponential function) for each element of `self`.
     #[inline]
     pub fn exp(self) -> Self {
-        Self {
-            x: self.x.exp(),
-            y: self.y.exp(),
-        }
+        Self::new(self.x.exp(), self.y.exp())
     }
 
     /// Returns a `Vec2` containing each element of `self` raised to the power of `n`.
     #[inline]
     pub fn powf(self, n: f32) -> Self {
-        Self {
-            x: self.x.powf(n),
-            y: self.y.powf(n),
-        }
+        Self::new(self.x.powf(n), self.y.powf(n))
     }
 
     /// Returns a `Vec2` that is equal to `self` rotated by 90 degrees.
     #[inline]
     pub fn perp(self) -> Self {
-        Self {
-            x: -self.y,
-            y: self.x,
-        }
+        Self(self.0.perp())
     }
 
     /// The perpendicular dot product of the vector and `other`.
     #[inline]
     pub fn perp_dot(self, other: Vec2) -> f32 {
-        (self.x * other.y) - (self.y * other.x)
+        self.0.perp_dot(other.0)
     }
 
     /// Returns the angle between two vectors, in radians.
@@ -394,15 +406,7 @@ impl Vec2 {
     /// perform a `sqrt`.
     #[inline]
     pub fn angle_between(self, other: Self) -> f32 {
-        let angle = crate::f32::funcs::scalar_acos(
-            self.dot(other) / (self.dot(self) * other.dot(other)).sqrt(),
-        );
-
-        if self.perp_dot(other) < 0.0 {
-            -angle
-        } else {
-            angle
-        }
+        self.0.angle_between(other.0)
     }
 }
 
@@ -417,18 +421,14 @@ impl Div<Vec2> for Vec2 {
     type Output = Self;
     #[inline]
     fn div(self, other: Vec2) -> Self {
-        Self {
-            x: self.x / other.x,
-            y: self.y / other.y,
-        }
+        Self(self.0.div(other.0))
     }
 }
 
 impl DivAssign<Vec2> for Vec2 {
     #[inline]
     fn div_assign(&mut self, other: Vec2) {
-        self.x /= other.x;
-        self.y /= other.y;
+        self.0 = self.0.div(other.0)
     }
 }
 
@@ -436,18 +436,14 @@ impl Div<f32> for Vec2 {
     type Output = Self;
     #[inline]
     fn div(self, other: f32) -> Self {
-        Self {
-            x: self.x / other,
-            y: self.y / other,
-        }
+        Self(self.0.div_scalar(other))
     }
 }
 
 impl DivAssign<f32> for Vec2 {
     #[inline]
     fn div_assign(&mut self, other: f32) {
-        self.x /= other;
-        self.y /= other;
+        self.0 = self.div_scalar(other)
     }
 }
 
@@ -455,10 +451,7 @@ impl Div<Vec2> for f32 {
     type Output = Vec2;
     #[inline]
     fn div(self, other: Vec2) -> Vec2 {
-        Vec2 {
-            x: self / other.x,
-            y: self / other.y,
-        }
+        Vec2(Inner::splat(self).div(other.0))
     }
 }
 
@@ -466,18 +459,14 @@ impl Mul<Vec2> for Vec2 {
     type Output = Self;
     #[inline]
     fn mul(self, other: Vec2) -> Self {
-        Self {
-            x: self.x * other.x,
-            y: self.y * other.y,
-        }
+        Self(self.0.mul(other.0))
     }
 }
 
 impl MulAssign<Vec2> for Vec2 {
     #[inline]
     fn mul_assign(&mut self, other: Vec2) {
-        self.x *= other.x;
-        self.y *= other.y;
+        self.0 = self.0.mul(other.0)
     }
 }
 
@@ -485,18 +474,14 @@ impl Mul<f32> for Vec2 {
     type Output = Self;
     #[inline]
     fn mul(self, other: f32) -> Self {
-        Self {
-            x: self.x * other,
-            y: self.y * other,
-        }
+        Self(self.0.mul_scalar(other))
     }
 }
 
 impl MulAssign<f32> for Vec2 {
     #[inline]
     fn mul_assign(&mut self, other: f32) {
-        self.x *= other;
-        self.y *= other;
+        self.0 = self.0.mul_scalar(other)
     }
 }
 
@@ -504,10 +489,7 @@ impl Mul<Vec2> for f32 {
     type Output = Vec2;
     #[inline]
     fn mul(self, other: Vec2) -> Vec2 {
-        Vec2 {
-            x: self * other.x,
-            y: self * other.y,
-        }
+        Vec2(Inner::splat(self).mul(other.0))
     }
 }
 
@@ -515,18 +497,14 @@ impl Add for Vec2 {
     type Output = Self;
     #[inline]
     fn add(self, other: Self) -> Self {
-        Self {
-            x: self.x + other.x,
-            y: self.y + other.y,
-        }
+        Self(self.0.add(other.0))
     }
 }
 
 impl AddAssign for Vec2 {
     #[inline]
     fn add_assign(&mut self, other: Self) {
-        self.x += other.x;
-        self.y += other.y;
+        self.0 = self.0.add(other.0)
     }
 }
 
@@ -534,18 +512,14 @@ impl Sub for Vec2 {
     type Output = Self;
     #[inline]
     fn sub(self, other: Vec2) -> Self {
-        Self {
-            x: self.x - other.x,
-            y: self.y - other.y,
-        }
+        Self(self.0.sub(other.0))
     }
 }
 
 impl SubAssign for Vec2 {
     #[inline]
     fn sub_assign(&mut self, other: Vec2) {
-        self.x -= other.x;
-        self.y -= other.y;
+        self.0 = self.0.sub(other.0)
     }
 }
 
@@ -553,10 +527,7 @@ impl Neg for Vec2 {
     type Output = Self;
     #[inline]
     fn neg(self) -> Self {
-        Self {
-            x: -self.x,
-            y: -self.y,
-        }
+        Self(self.0.neg())
     }
 }
 
@@ -602,35 +573,43 @@ impl IndexMut<usize> for Vec2 {
 impl From<(f32, f32)> for Vec2 {
     #[inline]
     fn from(t: (f32, f32)) -> Self {
-        Self { x: t.0, y: t.1 }
+        Self(Inner::from_tuple(t))
     }
 }
 
 impl From<Vec2> for (f32, f32) {
     #[inline]
     fn from(v: Vec2) -> Self {
-        (v.x, v.y)
+        v.0.into_tuple()
     }
 }
 
 impl From<[f32; 2]> for Vec2 {
     #[inline]
     fn from(a: [f32; 2]) -> Self {
-        Self { x: a[0], y: a[1] }
+        Self(Inner::from_array(a))
     }
 }
 
 impl From<Vec2> for [f32; 2] {
     #[inline]
     fn from(v: Vec2) -> Self {
-        [v.x, v.y]
+        v.0.into_array()
     }
 }
 
-impl From<crate::XY<f32>> for Vec2 {
-    #[inline]
-    fn from(v: crate::XY<f32>) -> Self {
-        Vec2::new(v.x, v.y)
+impl Deref for Vec2 {
+    type Target = Inner;
+    #[inline(always)]
+    fn deref(&self) -> &Self::Target {
+        unsafe { &*(self as *const Self as *const Self::Target) }
+    }
+}
+
+impl DerefMut for Vec2 {
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { &mut *(self as *mut Self as *mut Self::Target) }
     }
 }
 
@@ -640,7 +619,7 @@ impl<'a> Sum<&'a Self> for Vec2 {
     where
         I: Iterator<Item = &'a Self>,
     {
-        iter.fold(ZERO, |a, &b| Self::add(a, b))
+        iter.fold(Self::zero(), |a, &b| Self::add(a, b))
     }
 }
 
@@ -650,6 +629,6 @@ impl<'a> Product<&'a Self> for Vec2 {
     where
         I: Iterator<Item = &'a Self>,
     {
-        iter.fold(ONE, |a, &b| Self::mul(a, b))
+        iter.fold(Self::one(), |a, &b| Self::mul(a, b))
     }
 }

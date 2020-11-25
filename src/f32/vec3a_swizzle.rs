@@ -3,7 +3,7 @@
 use crate::{Vec2, Vec3A, Vec4};
 
 #[cfg(vec3a_f32)]
-use crate::{XYZ, XYZW};
+use crate::{XY, XYZ, XYZW};
 
 #[cfg(all(vec3a_sse2, target_arch = "x86"))]
 use core::arch::x86::*;
@@ -1424,7 +1424,7 @@ impl Vec3ASwizzles for Vec3A {
 
         #[cfg(vec3a_f32)]
         {
-            Vec2 { x: self.x, y: self.x }
+            Vec2(XY { x: self.0.x, y: self.0.x })
         }
     }
     #[inline]
@@ -1436,7 +1436,7 @@ impl Vec3ASwizzles for Vec3A {
 
         #[cfg(vec3a_f32)]
         {
-            Vec2 { x: self.x, y: self.y }
+            Vec2(XY { x: self.0.x, y: self.0.y })
         }
     }
     #[inline]
@@ -1448,7 +1448,7 @@ impl Vec3ASwizzles for Vec3A {
 
         #[cfg(vec3a_f32)]
         {
-            Vec2 { x: self.x, y: self.z }
+            Vec2(XY { x: self.0.x, y: self.0.z })
         }
     }
     #[inline]
@@ -1460,7 +1460,7 @@ impl Vec3ASwizzles for Vec3A {
 
         #[cfg(vec3a_f32)]
         {
-            Vec2 { x: self.y, y: self.x }
+            Vec2(XY { x: self.0.y, y: self.0.x })
         }
     }
     #[inline]
@@ -1472,7 +1472,7 @@ impl Vec3ASwizzles for Vec3A {
 
         #[cfg(vec3a_f32)]
         {
-            Vec2 { x: self.y, y: self.y }
+            Vec2(XY { x: self.0.y, y: self.0.y })
         }
     }
     #[inline]
@@ -1484,7 +1484,7 @@ impl Vec3ASwizzles for Vec3A {
 
         #[cfg(vec3a_f32)]
         {
-            Vec2 { x: self.y, y: self.z }
+            Vec2(XY { x: self.0.y, y: self.0.z })
         }
     }
     #[inline]
@@ -1496,7 +1496,7 @@ impl Vec3ASwizzles for Vec3A {
 
         #[cfg(vec3a_f32)]
         {
-            Vec2 { x: self.z, y: self.x }
+            Vec2(XY { x: self.0.z, y: self.0.x })
         }
     }
     #[inline]
@@ -1508,7 +1508,7 @@ impl Vec3ASwizzles for Vec3A {
 
         #[cfg(vec3a_f32)]
         {
-            Vec2 { x: self.z, y: self.y }
+            Vec2(XY { x: self.0.z, y: self.0.y })
         }
     }
     #[inline]
@@ -1520,7 +1520,7 @@ impl Vec3ASwizzles for Vec3A {
 
         #[cfg(vec3a_f32)]
         {
-            Vec2 { x: self.z, y: self.z }
+            Vec2(XY { x: self.0.z, y: self.0.z })
         }
     }
 }
