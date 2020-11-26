@@ -358,19 +358,19 @@ fn test_vec4mask_select() {
     let a = Vec4::new(1.0, 2.0, 3.0, 4.0);
     let b = Vec4::new(5.0, 6.0, 7.0, 8.0);
     assert_eq!(
-        Vec4Mask::new(true, true, true, true).select(a, b),
+        Vec4::select(Vec4Mask::new(true, true, true, true), a, b),
         Vec4::new(1.0, 2.0, 3.0, 4.0),
     );
     assert_eq!(
-        Vec4Mask::new(true, false, true, false).select(a, b),
+        Vec4::select(Vec4Mask::new(true, false, true, false), a, b),
         Vec4::new(1.0, 6.0, 3.0, 8.0),
     );
     assert_eq!(
-        Vec4Mask::new(false, true, false, true).select(a, b),
+        Vec4::select(Vec4Mask::new(false, true, false, true), a, b),
         Vec4::new(5.0, 2.0, 7.0, 4.0),
     );
     assert_eq!(
-        Vec4Mask::new(false, false, false, false).select(a, b),
+        Vec4::select(Vec4Mask::new(false, false, false, false), a, b),
         Vec4::new(5.0, 6.0, 7.0, 8.0),
     );
 }

@@ -23,50 +23,6 @@ use core::arch::x86_64::*;
 #[cfg(feature = "std")]
 use std::iter::{Product, Sum};
 
-type XYZF32 = XYZ<f32>;
-
-#[cfg(not(doc))]
-#[derive(Clone, Copy)]
-#[repr(C)]
-pub struct Vec3(pub(crate) XYZF32);
-
-/// A 3-dimensional vector without SIMD support.
-#[cfg(doc)]
-#[derive(Clone, Copy)]
-#[repr(C)]
-pub struct Vec3 {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-}
-
-#[cfg(not(doc))]
-#[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
-#[derive(Clone, Copy)]
-#[repr(align(16), C)]
-pub struct Vec3A(pub(crate) __m128);
-
-#[cfg(not(doc))]
-#[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
-#[derive(Clone, Copy)]
-#[repr(align(16), C)]
-pub struct Vec3A(pub(crate) XYZF32);
-
-/// A 3-dimensional vector with SIMD support.
-///
-/// This type uses 16 byte aligned SIMD vector4 types for storage on supported platforms for better
-/// performance than the `Vec3` type.
-///
-/// It is possible to convert between `Vec3` and `Vec3A` types using `From` trait implementations.
-#[cfg(doc)]
-#[derive(Clone, Copy)]
-#[repr(align(16), C)]
-pub struct Vec3A {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-}
-
 macro_rules! impl_vec3 {
     ($new:ident, $vec3:ident, $t:ty, $mask:ident, $inner:ident) => {
         impl Default for $vec3 {
@@ -708,6 +664,50 @@ macro_rules! impl_vec3 {
             }
         }
     };
+}
+
+type XYZF32 = XYZ<f32>;
+
+#[cfg(not(doc))]
+#[derive(Clone, Copy)]
+#[repr(C)]
+pub struct Vec3(pub(crate) XYZF32);
+
+/// A 3-dimensional vector without SIMD support.
+#[cfg(doc)]
+#[derive(Clone, Copy)]
+#[repr(C)]
+pub struct Vec3 {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+}
+
+#[cfg(not(doc))]
+#[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
+#[derive(Clone, Copy)]
+#[repr(align(16), C)]
+pub struct Vec3A(pub(crate) __m128);
+
+#[cfg(not(doc))]
+#[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
+#[derive(Clone, Copy)]
+#[repr(align(16), C)]
+pub struct Vec3A(pub(crate) XYZF32);
+
+/// A 3-dimensional vector with SIMD support.
+///
+/// This type uses 16 byte aligned SIMD vector4 types for storage on supported platforms for better
+/// performance than the `Vec3` type.
+///
+/// It is possible to convert between `Vec3` and `Vec3A` types using `From` trait implementations.
+#[cfg(doc)]
+#[derive(Clone, Copy)]
+#[repr(align(16), C)]
+pub struct Vec3A {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 impl_vec3!(vec3, Vec3, f32, Vec3Mask, XYZF32);

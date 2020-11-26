@@ -1,5 +1,5 @@
-use crate::{Vec2, Vec4};
 use crate::swizzles::*;
+use crate::{Vec2, Vec4};
 #[cfg(all(vec4_sse2, target_arch = "x86",))]
 use core::arch::x86::*;
 #[cfg(all(vec4_sse2, target_arch = "x86_64",))]
