@@ -200,6 +200,9 @@ mod vec3_mask;
 mod vec4;
 mod vec4_mask;
 
+pub use self::vec2::{dvec2, DVec2};
+pub use self::vec2_mask::DVec2Mask;
+
 pub use self::vec2::{vec2, Vec2};
 pub use self::vec2_mask::Vec2Mask;
 pub use self::vec3::{vec3, vec3a, Vec3, Vec3A};

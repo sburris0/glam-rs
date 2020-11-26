@@ -2,6 +2,7 @@
 use num_traits::Float;
 
 use crate::vector_traits::*;
+// use crate::DVec2Mask;
 use crate::{Vec2Mask, Vec3, XY};
 #[cfg(not(target_arch = "spirv"))]
 use core::fmt;
@@ -47,9 +48,9 @@ macro_rules! impl_vec2 {
             }
         }
 
-        /// Creates a `$vec2`.
+        /// Creates a 2D vector.
         #[inline]
-        pub fn vec2(x: $t, y: $t) -> $vec2 {
+        pub fn $new(x: $t, y: $t) -> $vec2 {
             $vec2::new(x, y)
         }
 
@@ -172,7 +173,8 @@ macro_rules! impl_vec2 {
             /// Creates a `$vec2` from `self` and the given `z` value.
             #[inline]
             pub fn extend(self, z: $t) -> Vec3 {
-                Vec3::new(self.x, self.y, z)
+                // TODO: specify Vec3 type
+                Vec3::new(self.x as f32, self.y as f32, z as f32)
             }
 
             /// Computes the dot product of `self` and `other`.
@@ -619,12 +621,18 @@ macro_rules! impl_vec2 {
 }
 
 type XYF32 = XY<f32>;
+type XYF64 = XY<f64>;
 
 #[cfg(not(doc))]
 #[derive(Clone, Copy)]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
 #[cfg_attr(target_arch = "spirv", repr(simd))]
 pub struct Vec2(pub(crate) XYF32);
+
+#[cfg(not(doc))]
+#[derive(Clone, Copy)]
+#[repr(C)]
+pub struct DVec2(pub(crate) XYF64);
 
 #[cfg(doc)]
 #[derive(Clone, Copy)]
@@ -636,3 +644,4 @@ pub struct Vec2 {
 }
 
 impl_vec2!(vec2, Vec2, f32, Vec2Mask, XYF32);
+impl_vec2!(dvec2, DVec2, f64, Vec2Mask, XYF64);

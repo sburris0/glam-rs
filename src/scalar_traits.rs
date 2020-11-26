@@ -5,6 +5,10 @@ use core::{
     ops::{Add, Div, Mul, Neg, Sub},
 };
 
+pub trait MaskConsts: Sized {
+    const MASK: [Self; 2];
+}
+
 pub trait NumConsts: Sized {
     const ZERO: Self;
     const ONE: Self;
@@ -46,6 +50,14 @@ pub trait Float: Num + Neg<Output = Self> + FloatConsts {
     fn sin_cos(self) -> (Self, Self);
     fn from_f32(f: f32) -> Self;
     fn from_f64(f: f64) -> Self;
+}
+
+impl MaskConsts for u32 {
+    const MASK: [u32; 2] = [0, 0xff_ff_ff_ff];
+}
+
+impl MaskConsts for u64 {
+    const MASK: [u64; 2] = [0, 0xff_ff_ff_ff_ff_ff_ff_ff];
 }
 
 impl NumConsts for f32 {

@@ -1,9 +1,7 @@
 use crate::scalar_traits::Float;
 use crate::{XY, XYZ, XYZW};
 
-const MASK: [u32; 2] = [0, 0xff_ff_ff_ff];
-
-pub trait MaskVectorConsts {
+pub trait MaskVectorConsts: Sized {
     const FALSE: Self;
 }
 
@@ -380,8 +378,7 @@ pub trait Quaternion<T: Float>: FloatVector4<T> {
 }
 
 mod scalar {
-    use super::MASK;
-    use crate::scalar_traits::{Float, Num, NumConsts};
+    use crate::scalar_traits::{Float, MaskConsts, Num, NumConsts};
     use crate::vector_traits::*;
     use crate::{XY, XYZ, XYZW};
 
@@ -571,14 +568,14 @@ mod scalar {
         #[inline]
         fn new(x: bool, y: bool) -> Self {
             Self {
-                x: MASK[x as usize],
-                y: MASK[y as usize],
+                x: MaskConsts::MASK[x as usize],
+                y: MaskConsts::MASK[y as usize],
             }
         }
 
         #[inline]
         fn bitmask(self) -> u32 {
-            (self.x & 0x1) | (self.y & 0x1) << 1
+            (self.x as u32 & 0x1) | (self.y as u32 & 0x1) << 1
         }
 
         #[inline]
@@ -599,9 +596,9 @@ mod scalar {
             // we expect either 0 or 0xff_ff_ff_ff. This should be a safe assumption as this type
             // can only be created via this function or by `Vec3` methods.
             Self {
-                x: MASK[x as usize],
-                y: MASK[y as usize],
-                z: MASK[z as usize],
+                x: MaskConsts::MASK[x as usize],
+                y: MaskConsts::MASK[y as usize],
+                z: MaskConsts::MASK[z as usize],
             }
         }
         #[inline]
@@ -627,10 +624,10 @@ mod scalar {
             // we expect either 0 or 0xff_ff_ff_ff. This should be a safe assumption as this type
             // can only be created via this function or by `Vec4` methods.
             Self {
-                x: MASK[x as usize],
-                y: MASK[y as usize],
-                z: MASK[z as usize],
-                w: MASK[w as usize],
+                x: MaskConsts::MASK[x as usize],
+                y: MaskConsts::MASK[y as usize],
+                z: MaskConsts::MASK[z as usize],
+                w: MaskConsts::MASK[w as usize],
             }
         }
 
@@ -761,32 +758,32 @@ mod scalar {
 
         #[inline]
         fn cmpeq(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.eq(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.eq(&b) as usize])
         }
 
         #[inline]
         fn cmpne(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.ne(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.ne(&b) as usize])
         }
 
         #[inline]
         fn cmpge(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.ge(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.ge(&b) as usize])
         }
 
         #[inline]
         fn cmpgt(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.gt(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.gt(&b) as usize])
         }
 
         #[inline]
         fn cmple(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.le(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.le(&b) as usize])
         }
 
         #[inline]
         fn cmplt(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.lt(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.lt(&b) as usize])
         }
 
         #[inline]
@@ -864,32 +861,32 @@ mod scalar {
 
         #[inline]
         fn cmpeq(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.eq(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.eq(&b) as usize])
         }
 
         #[inline]
         fn cmpne(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.ne(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.ne(&b) as usize])
         }
 
         #[inline]
         fn cmpge(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.ge(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.ge(&b) as usize])
         }
 
         #[inline]
         fn cmpgt(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.gt(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.gt(&b) as usize])
         }
 
         #[inline]
         fn cmple(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.le(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.le(&b) as usize])
         }
 
         #[inline]
         fn cmplt(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.lt(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.lt(&b) as usize])
         }
 
         #[inline]
@@ -973,32 +970,32 @@ mod scalar {
 
         #[inline]
         fn cmpeq(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.eq(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.eq(&b) as usize])
         }
 
         #[inline]
         fn cmpne(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.ne(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.ne(&b) as usize])
         }
 
         #[inline]
         fn cmpge(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.ge(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.ge(&b) as usize])
         }
 
         #[inline]
         fn cmpgt(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.gt(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.gt(&b) as usize])
         }
 
         #[inline]
         fn cmple(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.le(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.le(&b) as usize])
         }
 
         #[inline]
         fn cmplt(self, other: Self) -> Self::Mask {
-            self.map2(other, |a, b| MASK[a.lt(&b) as usize])
+            self.map2(other, |a, b| MaskConsts::MASK[a.lt(&b) as usize])
         }
 
         #[inline]
@@ -1282,7 +1279,7 @@ mod scalar {
     impl<T: Float> FloatVector<T> for XY<T> {
         #[inline]
         fn is_nan(self) -> Self::Mask {
-            self.map(|a| MASK[a.is_nan() as usize])
+            self.map(|a| MaskConsts::MASK[a.is_nan() as usize])
         }
 
         #[inline]
@@ -1324,7 +1321,7 @@ mod scalar {
     impl<T: Float> FloatVector<T> for XYZ<T> {
         #[inline]
         fn is_nan(self) -> Self::Mask {
-            self.map(|a| MASK[a.is_nan() as usize])
+            self.map(|a| MaskConsts::MASK[a.is_nan() as usize])
         }
 
         #[inline]
@@ -1366,7 +1363,7 @@ mod scalar {
     impl<T: Float> FloatVector<T> for XYZW<T> {
         #[inline]
         fn is_nan(self) -> Self::Mask {
-            self.map(|a| MASK[a.is_nan() as usize])
+            self.map(|a| MaskConsts::MASK[a.is_nan() as usize])
         }
 
         #[inline]
@@ -1569,7 +1566,7 @@ mod sse2 {
     #[cfg(target_arch = "x86_64")]
     use core::arch::x86_64::*;
 
-    use super::MASK;
+    use crate::scalar_traits::MaskConsts;
     use crate::vector_traits::*;
     use crate::Align16;
     use crate::{const_m128, XY, XYZ, XYZW};
@@ -1606,9 +1603,9 @@ mod sse2 {
             unsafe {
                 _mm_set_ps(
                     0.0,
-                    f32::from_bits(MASK[z as usize]),
-                    f32::from_bits(MASK[y as usize]),
-                    f32::from_bits(MASK[x as usize]),
+                    f32::from_bits(MaskConsts::MASK[z as usize]),
+                    f32::from_bits(MaskConsts::MASK[y as usize]),
+                    f32::from_bits(MaskConsts::MASK[x as usize]),
                 )
             }
         }
