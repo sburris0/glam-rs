@@ -193,10 +193,19 @@ mod scalar_traits;
 mod storage;
 mod vector_traits;
 
+mod vec2;
+mod vec2_mask;
 mod vec3;
 mod vec3_mask;
+mod vec4;
+mod vec4_mask;
+
+pub use self::vec2::{vec2, Vec2};
+pub use self::vec2_mask::Vec2Mask;
 pub use self::vec3::{vec3, vec3a, Vec3, Vec3A};
 pub use self::vec3_mask::{Vec3AMask, Vec3Mask};
+pub use self::vec4::{vec4, Vec4};
+pub use self::vec4_mask::Vec4Mask;
 
 #[doc(hidden)]
 pub mod f32;
@@ -204,8 +213,7 @@ pub mod f32;
 pub use self::storage::{XY, XYZ, XYZW};
 
 pub use self::f32::{
-    mat2, mat3, mat4, quat, vec2, vec4, Mat2, Mat3, Mat4, Quat, Vec2, Vec2Mask, Vec4, Vec4Mask,
-};
+    mat2, mat3, mat4, quat, Mat2, Mat3, Mat4, Quat};
 pub mod swizzles {
     pub use super::f32::{Vec2Swizzles, Vec3ASwizzles, Vec3Swizzles, Vec4Swizzles};
 }

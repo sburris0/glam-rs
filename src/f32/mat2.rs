@@ -1,4 +1,4 @@
-use super::{scalar_sin_cos, Vec2, Vec4};
+use crate::{Vec2, Vec4};
 use crate::swizzles::*;
 #[cfg(all(vec4_sse2, target_arch = "x86",))]
 use core::arch::x86::*;
@@ -13,6 +13,13 @@ use std::iter::{Product, Sum};
 
 const ZERO: Mat2 = const_mat2!([0.0; 4]);
 const IDENTITY: Mat2 = const_mat2!([1.0, 0.0], [0.0, 1.0]);
+
+#[derive(Clone, Copy)]
+#[repr(C)]
+pub struct XYAxes {
+    pub x_axis: Vec2,
+    pub y_axis: Vec2,
+}
 
 /// Creates a `Mat2` from two column vectors.
 #[inline]
@@ -104,7 +111,7 @@ impl Mat2 {
     /// `angle` (in radians).
     #[inline]
     pub fn from_scale_angle(scale: Vec2, angle: f32) -> Self {
-        let (sin, cos) = scalar_sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         let (scale_x, scale_y) = scale.into();
         Self(Vec4::new(
             cos * scale_x,
@@ -117,7 +124,7 @@ impl Mat2 {
     /// Creates a 2x2 matrix containing a rotation of `angle` (in radians).
     #[inline]
     pub fn from_angle(angle: f32) -> Self {
-        let (sin, cos) = scalar_sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self(Vec4::new(cos, sin, -sin, cos))
     }
 
