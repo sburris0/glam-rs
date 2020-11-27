@@ -12,7 +12,7 @@ use core::{cmp::Ordering, f32, ops::*};
 use std::iter::{Product, Sum};
 
 macro_rules! impl_vec2 {
-    ($new:ident, $vec2:ident, $t:ty, $mask:ident, $inner:ident) => {
+    ($new:ident, $vec2:ident, $vec3:ident, $t:ty, $mask:ident, $inner:ident) => {
         impl Default for $vec2 {
             #[inline]
             fn default() -> Self {
@@ -172,9 +172,9 @@ macro_rules! impl_vec2 {
 
             /// Creates a `$vec2` from `self` and the given `z` value.
             #[inline]
-            pub fn extend(self, z: $t) -> Vec3 {
+            pub fn extend(self, z: $t) -> $vec3 {
                 // TODO: specify Vec3 type
-                Vec3::new(self.x as f32, self.y as f32, z as f32)
+                $vec3::new(self.x as f32, self.y as f32, z as f32)
             }
 
             /// Computes the dot product of `self` and `other`.
@@ -621,18 +621,12 @@ macro_rules! impl_vec2 {
 }
 
 type XYF32 = XY<f32>;
-type XYF64 = XY<f64>;
 
 #[cfg(not(doc))]
 #[derive(Clone, Copy)]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
 #[cfg_attr(target_arch = "spirv", repr(simd))]
 pub struct Vec2(pub(crate) XYF32);
-
-#[cfg(not(doc))]
-#[derive(Clone, Copy)]
-#[repr(C)]
-pub struct DVec2(pub(crate) XYF64);
 
 #[cfg(doc)]
 #[derive(Clone, Copy)]
@@ -643,5 +637,21 @@ pub struct Vec2 {
     pub y: f32,
 }
 
-impl_vec2!(vec2, Vec2, f32, Vec2Mask, XYF32);
-impl_vec2!(dvec2, DVec2, f64, Vec2Mask, XYF64);
+type XYF64 = XY<f64>;
+
+#[cfg(not(doc))]
+#[derive(Clone, Copy)]
+#[repr(C)]
+pub struct DVec2(pub(crate) XYF64);
+
+#[cfg(doc)]
+#[derive(Clone, Copy)]
+#[repr(C)]
+/// A 2-dimensional vector.
+pub struct DVec2 {
+    pub x: f64,
+    pub y: f64,
+}
+
+impl_vec2!(vec2, Vec2, Vec3, f32, Vec2Mask, XYF32);
+impl_vec2!(dvec2, DVec2, Vec3, f64, Vec2Mask, XYF64);

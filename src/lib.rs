@@ -194,21 +194,23 @@ mod storage;
 mod vector_traits;
 
 mod vec2;
-mod vec2_mask;
+mod vec_mask;
+// mod vec2_mask;
 mod vec3;
-mod vec3_mask;
+// mod vec3_mask;
 mod vec4;
-mod vec4_mask;
+// mod vec4_mask;
 
 pub use self::vec2::{dvec2, DVec2};
-pub use self::vec2_mask::DVec2Mask;
+// pub use self::vec2_mask::DVec2Mask;
 
 pub use self::vec2::{vec2, Vec2};
-pub use self::vec2_mask::Vec2Mask;
+// pub use self::vec2_mask::Vec2Mask;
 pub use self::vec3::{vec3, vec3a, Vec3, Vec3A};
-pub use self::vec3_mask::{Vec3AMask, Vec3Mask};
+pub use self::vec_mask::{Vec2Mask, Vec3AMask, Vec3Mask, Vec4Mask};
+// pub use self::vec3_mask::{Vec3AMask, Vec3Mask};
 pub use self::vec4::{vec4, Vec4};
-pub use self::vec4_mask::Vec4Mask;
+// pub use self::vec4_mask::Vec4Mask;
 
 #[doc(hidden)]
 pub mod f32;

@@ -1,9 +1,9 @@
 #[cfg(feature = "num-traits")]
 use num_traits::Float;
 
-use super::{Vec2, Vec3AMask, Vec3Mask, Vec4};
 use crate::vector_traits::*;
 use crate::XYZ;
+use crate::{Vec2, Vec3AMask, Vec3Mask, Vec4};
 use core::{cmp::Ordering, f32};
 use core::{fmt, ops::*};
 
