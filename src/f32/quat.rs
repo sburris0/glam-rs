@@ -316,9 +316,7 @@ impl Quat {
     /// https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
     #[inline]
     pub fn abs_diff_eq(self, other: Self, max_abs_diff: f32) -> bool {
-        // TODO: common function somehow
-        MaskVector4::all(self.0.sub(other.0).abs().cmple(Vector::splat(max_abs_diff)))
-        // abs_diff_eq!(self, other, max_abs_diff)
+        FloatVector4::abs_diff_eq(self.0, other.0, max_abs_diff)
     }
 
     /// Performs a linear interpolation between `self` and `other` based on

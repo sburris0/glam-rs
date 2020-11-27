@@ -2,7 +2,7 @@
 use num_traits::Float;
 
 use crate::vector_traits::*;
-// use crate::DVec2Mask;
+use crate::{DVec2Mask, DVec3};
 use crate::{Vec2Mask, Vec3, XY};
 #[cfg(not(target_arch = "spirv"))]
 use core::fmt;
@@ -94,7 +94,7 @@ macro_rules! impl_vec2 {
             /// Uses a precision threshold of `1e-6`.
             #[inline]
             pub fn is_normalized(self) -> bool {
-                is_normalized!(self)
+                self.0.is_normalized()
             }
 
             /// Returns `true` if, and only if, all elements are finite.
@@ -121,7 +121,7 @@ macro_rules! impl_vec2 {
             /// https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
             #[inline]
             pub fn abs_diff_eq(self, other: Self, max_abs_diff: $t) -> bool {
-                abs_diff_eq!(self, other, max_abs_diff)
+                self.0.abs_diff_eq(other.0, max_abs_diff)
             }
 
             /// Creates a new `$vec2`.
@@ -173,8 +173,7 @@ macro_rules! impl_vec2 {
             /// Creates a `$vec2` from `self` and the given `z` value.
             #[inline]
             pub fn extend(self, z: $t) -> $vec3 {
-                // TODO: specify Vec3 type
-                $vec3::new(self.x as f32, self.y as f32, z as f32)
+                $vec3::new(self.x, self.y, z)
             }
 
             /// Computes the dot product of `self` and `other`.
@@ -631,11 +630,13 @@ pub struct Vec2(pub(crate) XYF32);
 #[cfg(doc)]
 #[derive(Clone, Copy)]
 #[repr(C)]
-/// A 2-dimensional vector.
+/// A 2-dimensional `f32` vector.
 pub struct Vec2 {
     pub x: f32,
     pub y: f32,
 }
+
+impl_vec2!(vec2, Vec2, Vec3, f32, Vec2Mask, XYF32);
 
 type XYF64 = XY<f64>;
 
@@ -647,11 +648,10 @@ pub struct DVec2(pub(crate) XYF64);
 #[cfg(doc)]
 #[derive(Clone, Copy)]
 #[repr(C)]
-/// A 2-dimensional vector.
+/// A 2-dimensional `f64` vector.
 pub struct DVec2 {
     pub x: f64,
     pub y: f64,
 }
 
-impl_vec2!(vec2, Vec2, Vec3, f32, Vec2Mask, XYF32);
-impl_vec2!(dvec2, DVec2, Vec3, f64, Vec2Mask, XYF64);
+impl_vec2!(dvec2, DVec2, DVec3, f64, DVec2Mask, XYF64);

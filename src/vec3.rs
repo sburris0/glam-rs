@@ -3,6 +3,7 @@ use num_traits::Float;
 
 use crate::vector_traits::*;
 use crate::XYZ;
+use crate::{DVec2, DVec3Mask, DVec4};
 use crate::{Vec2, Vec3AMask, Vec3Mask, Vec4};
 use core::{cmp::Ordering, f32};
 use core::{fmt, ops::*};
@@ -24,7 +25,7 @@ use core::arch::x86_64::*;
 use std::iter::{Product, Sum};
 
 macro_rules! impl_vec3 {
-    ($new:ident, $vec3:ident, $t:ty, $mask:ident, $inner:ident) => {
+    ($new:ident, $vec2:ident, $vec3:ident, $vec4:ident, $t:ty, $mask:ident, $inner:ident) => {
         impl Default for $vec3 {
             #[inline]
             fn default() -> Self {
@@ -122,17 +123,17 @@ macro_rules! impl_vec3 {
 
             /// Creates a `Vec4` from `self` and the given `w` value.
             #[inline]
-            pub fn extend(self, w: $t) -> Vec4 {
+            pub fn extend(self, w: $t) -> $vec4 {
                 // TODO: Optimize?
-                Vec4(Vector4::new(self.x, self.y, self.z, w))
+                $vec4(Vector4::new(self.x, self.y, self.z, w))
             }
 
             /// Creates a `Vec2` from the `x` and `y` elements of `self`, discarding `z`.
             ///
             /// Truncation may also be performed by using `self.xy()` or `Vec2::from()`.
             #[inline]
-            pub fn truncate(self) -> Vec2 {
-                Vec2(Vector3::into_xy(self.0))
+            pub fn truncate(self) -> $vec2 {
+                $vec2(Vector3::into_xy(self.0))
             }
 
             /// Computes the dot product of `self` and `other`.
@@ -621,7 +622,7 @@ macro_rules! impl_vec3 {
             }
         }
 
-        impl From<$vec3> for Vec2 {
+        impl From<$vec3> for $vec2 {
             /// Creates a `Vec2` from the `x` and `y` elements of the `$vec3`, discarding `z`.
             #[inline]
             fn from(v: $vec3) -> Self {
@@ -683,6 +684,8 @@ pub struct Vec3 {
     pub z: f32,
 }
 
+impl_vec3!(vec3, Vec2, Vec3, Vec4, f32, Vec3Mask, XYZF32);
+
 #[cfg(not(doc))]
 #[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
 #[derive(Clone, Copy)]
@@ -710,12 +713,10 @@ pub struct Vec3A {
     pub z: f32,
 }
 
-impl_vec3!(vec3, Vec3, f32, Vec3Mask, XYZF32);
-
 #[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
-impl_vec3!(vec3a, Vec3A, f32, Vec3AMask, __m128);
+impl_vec3!(vec3a, Vec2, Vec3A, Vec4, f32, Vec3AMask, __m128);
 #[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
-impl_vec3!(vec3a, Vec3A, f32, Vec3AMask, XYZF32);
+impl_vec3!(vec3a, Vec2, Vec3A, Vec4, f32, Vec3AMask, XYZF32);
 
 impl From<Vec3> for Vec3A {
     #[inline]
@@ -730,6 +731,25 @@ impl From<Vec3A> for Vec3 {
         Self::new(v.x, v.y, v.z)
     }
 }
+
+type XYZF64 = XYZ<f64>;
+
+#[cfg(not(doc))]
+#[derive(Clone, Copy)]
+#[repr(C)]
+pub struct DVec3(pub(crate) XYZF64);
+
+/// A 3-dimensional vector.
+#[cfg(doc)]
+#[derive(Clone, Copy)]
+#[repr(C)]
+pub struct DVec3 {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+}
+
+impl_vec3!(dvec3, DVec2, DVec3, DVec4, f64, DVec3Mask, XYZF64);
 
 #[test]
 fn test_vec3_private() {
