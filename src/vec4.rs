@@ -300,6 +300,7 @@ macro_rules! impl_vec4 {
 
             /// Per element multiplication/addition of the three inputs: b + (self * a)
             #[inline]
+            #[allow(dead_code)]
             pub(crate) fn mul_add(self, a: Self, b: Self) -> Self {
                 Self(self.0.mul_add(a.0, b.0))
             }

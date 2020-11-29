@@ -1,7 +1,7 @@
 #[macro_use]
 mod macros;
 
-use glam::{Mat2, Mat3, Mat4, Quat, Vec2, Vec3, Vec3A, Vec4};
+use glam::{DVec2, DVec3, DVec4, Mat2, Mat3, Mat4, Quat, Vec2, Vec3, Vec3A, Vec4};
 
 #[cfg(feature = "transform-types")]
 use glam::{TransformRT, TransformSRT};
@@ -37,6 +37,17 @@ impl FloatCompare for f32 {
     }
     #[inline]
     fn abs_diff(&self, other: &f32) -> f32 {
+        (self - other).abs()
+    }
+}
+
+impl FloatCompare for f64 {
+    #[inline]
+    fn approx_eq(&self, other: &f64, max_abs_diff: f32) -> bool {
+        (self - other).abs() <= max_abs_diff as f64
+    }
+    #[inline]
+    fn abs_diff(&self, other: &f64) -> f64 {
         (self - other).abs()
     }
 }
@@ -136,6 +147,39 @@ impl FloatCompare for Vec4 {
     #[inline]
     fn approx_eq(&self, other: &Self, max_abs_diff: f32) -> bool {
         self.abs_diff_eq(*other, max_abs_diff)
+    }
+    #[inline]
+    fn abs_diff(&self, other: &Self) -> Self {
+        (*self - *other).abs()
+    }
+}
+
+impl FloatCompare for DVec2 {
+    #[inline]
+    fn approx_eq(&self, other: &Self, max_abs_diff: f32) -> bool {
+        self.abs_diff_eq(*other, max_abs_diff as f64)
+    }
+    #[inline]
+    fn abs_diff(&self, other: &Self) -> Self {
+        (*self - *other).abs()
+    }
+}
+
+impl FloatCompare for DVec3 {
+    #[inline]
+    fn approx_eq(&self, other: &Self, max_abs_diff: f32) -> bool {
+        self.abs_diff_eq(*other, max_abs_diff as f64)
+    }
+    #[inline]
+    fn abs_diff(&self, other: &Self) -> Self {
+        (*self - *other).abs()
+    }
+}
+
+impl FloatCompare for DVec4 {
+    #[inline]
+    fn approx_eq(&self, other: &Self, max_abs_diff: f32) -> bool {
+        self.abs_diff_eq(*other, max_abs_diff as f64)
     }
     #[inline]
     fn abs_diff(&self, other: &Self) -> Self {

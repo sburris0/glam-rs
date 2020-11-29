@@ -190,7 +190,7 @@ compile_error!("`bytemuck` feature is not supported when building for SPIRV");
 mod macros;
 
 mod core;
-mod swizzles;
+pub mod swizzles;
 mod vec2;
 mod vec3;
 mod vec4;
