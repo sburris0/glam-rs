@@ -458,19 +458,19 @@ impl Vec2Swizzles for Vec2 {{"#
 }
 
 fn write_src() -> Result<()> {
-    let mut out = File::create("../src/f32/vec4_swizzle.rs")?;
+    let mut out = File::create("../src/swizzles/vec4_swizzle.rs")?;
     write_swizzle_head(&mut out)?;
     write_swizzle_vec4(&mut out)?;
 
-    let mut out = File::create("../src/f32/vec3a_swizzle.rs")?;
+    let mut out = File::create("../src/swizzles/vec3a_swizzle.rs")?;
     write_swizzle_head(&mut out)?;
     write_swizzle_vec3a(&mut out)?;
 
-    let mut out = File::create("../src/f32/vec3_swizzle.rs")?;
+    let mut out = File::create("../src/swizzles/vec3_swizzle.rs")?;
     write_swizzle_head(&mut out)?;
     write_swizzle_vec3(&mut out)?;
 
-    let mut out = File::create("../src/f32/vec2_swizzle.rs")?;
+    let mut out = File::create("../src/swizzles/vec2_swizzle.rs")?;
     write_swizzle_head(&mut out)?;
     write_swizzle_vec2(&mut out)?;
 

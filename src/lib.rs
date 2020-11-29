@@ -190,7 +190,7 @@ compile_error!("`bytemuck` feature is not supported when building for SPIRV");
 mod macros;
 
 mod core;
-
+mod swizzles;
 mod vec2;
 mod vec3;
 mod vec4;
@@ -212,9 +212,6 @@ pub mod f32;
 pub use self::core::storage::{XY, XYZ, XYZW};
 
 pub use self::f32::{mat2, mat3, mat4, quat, Mat2, Mat3, Mat4, Quat};
-pub mod swizzles {
-    pub use super::f32::{Vec2Swizzles, Vec3ASwizzles, Vec3Swizzles, Vec4Swizzles};
-}
 pub use swizzles::{Vec2Swizzles, Vec3ASwizzles, Vec3Swizzles, Vec4Swizzles};
 
 #[cfg(feature = "transform-types")]

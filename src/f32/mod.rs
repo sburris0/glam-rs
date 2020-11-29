@@ -6,10 +6,6 @@ mod mat4;
 mod quat;
 #[cfg(feature = "transform-types")]
 mod transform;
-mod vec2_swizzle;
-mod vec3_swizzle;
-mod vec3a_swizzle;
-mod vec4_swizzle;
 
 pub use cast::{F32x16Cast, F32x2Cast, F32x3Cast, F32x4Cast, F32x9Cast};
 pub(crate) use funcs::{scalar_acos, scalar_sin_cos};
@@ -19,10 +15,6 @@ pub use mat4::*;
 pub use quat::*;
 #[cfg(feature = "transform-types")]
 pub use transform::*;
-pub use vec2_swizzle::*;
-pub use vec3_swizzle::*;
-pub use vec3a_swizzle::*;
-pub use vec4_swizzle::*;
 
 #[cfg(feature = "bytemuck")]
 mod glam_bytemuck;
