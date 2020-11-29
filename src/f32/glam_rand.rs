@@ -64,3 +64,36 @@ impl Distribution<Vec4> for Standard {
         rng.gen::<[f32; 4]>().into()
     }
 }
+
+#[test]
+fn test_vec2_rand() {
+    use rand::{Rng, SeedableRng};
+    use rand_xoshiro::Xoshiro256Plus;
+    let mut rng1 = Xoshiro256Plus::seed_from_u64(0);
+    let a: (f32, f32) = rng1.gen();
+    let mut rng2 = Xoshiro256Plus::seed_from_u64(0);
+    let b: Vec2 = rng2.gen();
+    assert_eq!(a, b.into());
+}
+
+#[test]
+fn test_vec3_rand() {
+    use rand::{Rng, SeedableRng};
+    use rand_xoshiro::Xoshiro256Plus;
+    let mut rng1 = Xoshiro256Plus::seed_from_u64(0);
+    let a: (f32, f32, f32) = rng1.gen();
+    let mut rng2 = Xoshiro256Plus::seed_from_u64(0);
+    let b: Vec3 = rng2.gen();
+    assert_eq!(a, b.into());
+}
+
+#[test]
+fn test_vec4_rand() {
+    use rand::{Rng, SeedableRng};
+    use rand_xoshiro::Xoshiro256Plus;
+    let mut rng1 = Xoshiro256Plus::seed_from_u64(0);
+    let a: (f32, f32, f32, f32) = rng1.gen();
+    let mut rng2 = Xoshiro256Plus::seed_from_u64(0);
+    let b: Vec4 = rng2.gen();
+    assert_eq!(a, b.into());
+}

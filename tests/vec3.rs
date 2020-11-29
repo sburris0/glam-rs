@@ -4,7 +4,7 @@ mod support;
 macro_rules! impl_vec3_tests {
     ($new:ident, $vec3:ident, $mask:ident, $t:ident) => {
         #[test]
-        fn test_vec3_new() {
+        fn test_new() {
             let v = $new(1.0, 2.0, 3.0);
 
             assert_eq!(v.x, 1.0);
@@ -29,7 +29,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_fmt() {
+        fn test_fmt() {
             let a = $vec3::new(1.0, 2.0, 3.0);
             assert_eq!(
                 format!("{:?}", a),
@@ -40,20 +40,20 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_zero() {
+        fn test_zero() {
             let v = $vec3::zero();
             assert_eq!((0.0, 0.0, 0.0), v.into());
             assert_eq!(v, $vec3::default());
         }
 
         #[test]
-        fn test_vec3_splat() {
+        fn test_splat() {
             let v = $vec3::splat(1.0);
             assert_eq!((1.0, 1.0, 1.0), v.into());
         }
 
         #[test]
-        fn test_vec3_accessors() {
+        fn test_accessors() {
             let mut a = $vec3::zero();
             a.x = 1.0;
             a.y = 2.0;
@@ -74,7 +74,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_funcs() {
+        fn test_funcs() {
             let x = $new(1.0, 0.0, 0.0);
             let y = $new(0.0, 1.0, 0.0);
             let z = $new(0.0, 0.0, 1.0);
@@ -120,7 +120,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_ops() {
+        fn test_ops() {
             let a = $new(1.0, 2.0, 3.0);
             assert_eq!((2.0, 4.0, 6.0), (a + a).into());
             assert_eq!((0.0, 0.0, 0.0), (a - a).into());
@@ -134,7 +134,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_assign_ops() {
+        fn test_assign_ops() {
             let a = $new(1.0, 2.0, 3.0);
             let mut b = a;
             b += a;
@@ -152,7 +152,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_min_max() {
+        fn test_min_max() {
             let a = $new(-1.0, 2.0, -3.0);
             let b = $new(1.0, -2.0, 3.0);
             assert_eq!((-1.0, -2.0, -3.0), a.min(b).into());
@@ -162,14 +162,14 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_hmin_hmax() {
+        fn test_hmin_hmax() {
             let a = $new(-1.0, 2.0, -3.0);
             assert_eq!(-3.0, a.min_element());
             assert_eq!(2.0, a.max_element());
         }
 
         #[test]
-        fn test_vec3_eq() {
+        fn test_eq() {
             let a = $new(1.0, 1.0, 1.0);
             let b = $new(1.0, 2.0, 3.0);
             assert!(a.cmpeq(a).all());
@@ -180,7 +180,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_cmp() {
+        fn test_cmp() {
             assert!(!$mask::default().any());
             assert!(!$mask::default().all());
             assert_eq!($mask::default().bitmask(), 0x0);
@@ -218,7 +218,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_mask() {
+        fn test_mask() {
             let mut a = $vec3::zero();
             a.x = 1.0;
             a.y = 1.0;
@@ -228,7 +228,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3mask_as_ref() {
+        fn test_mask_as_ref() {
             assert_eq!($mask::new(false, false, false).as_ref(), &[0, 0, 0]);
             assert_eq!($mask::new(true, false, false).as_ref(), &[!0, 0, 0]);
             assert_eq!($mask::new(false, true, true).as_ref(), &[0, !0, !0]);
@@ -238,7 +238,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3mask_from() {
+        fn test_mask_from() {
             assert_eq!(
                 Into::<[u32; 3]>::into($mask::new(false, false, false)),
                 [0, 0, 0]
@@ -266,7 +266,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3mask_bitmask() {
+        fn test_mask_bitmask() {
             assert_eq!($mask::new(false, false, false).bitmask(), 0b000);
             assert_eq!($mask::new(true, false, false).bitmask(), 0b001);
             assert_eq!($mask::new(false, true, true).bitmask(), 0b110);
@@ -276,7 +276,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3mask_any() {
+        fn test_mask_any() {
             assert_eq!($mask::new(false, false, false).any(), false);
             assert_eq!($mask::new(true, false, false).any(), true);
             assert_eq!($mask::new(false, true, false).any(), true);
@@ -284,7 +284,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3mask_all() {
+        fn test_mask_all() {
             assert_eq!($mask::new(true, true, true).all(), true);
             assert_eq!($mask::new(false, true, true).all(), false);
             assert_eq!($mask::new(true, false, true).all(), false);
@@ -292,7 +292,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3mask_select() {
+        fn test_mask_select() {
             let a = $vec3::new(1.0, 2.0, 3.0);
             let b = $vec3::new(4.0, 5.0, 6.0);
             assert_eq!(
@@ -314,7 +314,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3mask_and() {
+        fn test_mask_and() {
             assert_eq!(
                 ($mask::new(false, false, false) & $mask::new(false, false, false)).bitmask(),
                 0b000,
@@ -338,7 +338,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3mask_or() {
+        fn test_mask_or() {
             assert_eq!(
                 ($mask::new(false, false, false) | $mask::new(false, false, false)).bitmask(),
                 0b000,
@@ -362,7 +362,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3mask_not() {
+        fn test_mask_not() {
             assert_eq!((!$mask::new(false, false, false)).bitmask(), 0b111);
             assert_eq!((!$mask::new(true, true, true)).bitmask(), 0b000);
             assert_eq!((!$mask::new(true, false, true)).bitmask(), 0b010);
@@ -370,7 +370,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3mask_fmt() {
+        fn test_mask_fmt() {
             let a = $mask::new(true, false, false);
 
             // debug fmt
@@ -384,7 +384,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3mask_eq() {
+        fn test_mask_eq() {
             let a = $mask::new(true, false, true);
             let b = $mask::new(true, false, true);
             let c = $mask::new(false, true, true);
@@ -399,7 +399,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3mask_hash() {
+        fn test_mask_hash() {
             use std::collections::hash_map::DefaultHasher;
             use std::hash::Hash;
             use std::hash::Hasher;
@@ -427,7 +427,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_signum() {
+        fn test_signum() {
             assert_eq!($vec3::zero().signum(), $vec3::one());
             assert_eq!(-$vec3::zero().signum(), -$vec3::one());
             assert_eq!($vec3::one().signum(), $vec3::one());
@@ -438,14 +438,14 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_abs() {
+        fn test_abs() {
             assert_eq!($vec3::zero().abs(), $vec3::zero());
             assert_eq!($vec3::one().abs(), $vec3::one());
             assert_eq!((-$vec3::one()).abs(), $vec3::one());
         }
 
         #[test]
-        fn test_vec3_round() {
+        fn test_round() {
             assert_eq!($vec3::new(1.35, 0.0, 0.0).round().x, 1.0);
             assert_eq!($vec3::new(0.0, 1.5, 0.0).round().y, 2.0);
             assert_eq!($vec3::new(0.0, 0.0, -15.5).round().z, -16.0);
@@ -461,7 +461,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_floor() {
+        fn test_floor() {
             assert_eq!(
                 $vec3::new(1.35, 1.5, -1.5).floor(),
                 $vec3::new(1.0, 1.0, -2.0)
@@ -478,7 +478,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_ceil() {
+        fn test_ceil() {
             assert_eq!(
                 $vec3::new(1.35, 1.5, -1.5).ceil(),
                 $vec3::new(2.0, 2.0, -1.0)
@@ -495,7 +495,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_lerp() {
+        fn test_lerp() {
             let v0 = $vec3::new(-1.0, -1.0, -1.0);
             let v1 = $vec3::new(1.0, 1.0, 1.0);
             assert_approx_eq!(v0, v0.lerp(v1, 0.0));
@@ -504,7 +504,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_to_from_slice() {
+        fn test_to_from_slice() {
             let v = $vec3::new(1.0, 2.0, 3.0);
             let mut a = [0.0, 0.0, 0.0];
             v.write_to_slice_unaligned(&mut a);
@@ -512,7 +512,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_angle_between() {
+        fn test_angle_between() {
             let angle = $vec3::new(1.0, 0.0, 1.0).angle_between($vec3::new(1.0, 1.0, 0.0));
             assert_approx_eq!(core::$t::consts::FRAC_PI_3, angle, 1e-6);
 
@@ -521,36 +521,6 @@ macro_rules! impl_vec3_tests {
 
             let angle = $vec3::new(-1.0, 0.0, -1.0).angle_between($vec3::new(1.0, -1.0, 0.0));
             assert_approx_eq!(2.0 * core::$t::consts::FRAC_PI_3, angle, 1e-6);
-        }
-
-        #[cfg(feature = "serde")]
-        #[test]
-        fn test_vec3_serde() {
-            let a = $vec3::new(1.0, 2.0, 3.0);
-            let serialized = serde_json::to_string(&a).unwrap();
-            assert_eq!(serialized, "[1.0,2.0,3.0]");
-            let deserialized = serde_json::from_str(&serialized).unwrap();
-            assert_eq!(a, deserialized);
-            let deserialized = serde_json::from_str::<$vec3>("[]");
-            assert!(deserialized.is_err());
-            let deserialized = serde_json::from_str::<$vec3>("[1.0]");
-            assert!(deserialized.is_err());
-            let deserialized = serde_json::from_str::<$vec3>("[1.0,2.0]");
-            assert!(deserialized.is_err());
-            let deserialized = serde_json::from_str::<$vec3>("[1.0,2.0,3.0,4.0]");
-            assert!(deserialized.is_err());
-        }
-
-        #[cfg(feature = "rand")]
-        #[test]
-        fn test_vec3_rand() {
-            use rand::{Rng, SeedableRng};
-            use rand_xoshiro::Xoshiro256Plus;
-            let mut rng1 = Xoshiro256Plus::seed_from_u64(0);
-            let a: ($t, $t, $t) = rng1.gen();
-            let mut rng2 = Xoshiro256Plus::seed_from_u64(0);
-            let b: $vec3 = rng2.gen();
-            assert_eq!(a, b.into());
         }
 
         #[cfg(feature = "std")]
@@ -568,7 +538,7 @@ macro_rules! impl_vec3_tests {
         }
 
         #[test]
-        fn test_vec3_is_finite() {
+        fn test_is_finite() {
             use core::$t::INFINITY;
             use core::$t::NAN;
             use core::$t::NEG_INFINITY;
@@ -602,7 +572,7 @@ mod vec3 {
     use glam::{vec3, Vec3, Vec3Mask};
 
     #[test]
-    fn test_vec3_align() {
+    fn test_align() {
         use std::mem;
         assert_eq!(12, mem::size_of::<Vec3>());
         assert_eq!(4, mem::align_of::<Vec3>());
@@ -631,7 +601,7 @@ mod vec3a {
     }
 
     #[test]
-    fn test_vec3_mask_align16() {
+    fn test_mask_align16() {
         // make sure the unused 'w' value doesn't break Vec3Ab behaviour
         let a = Vec4::zero();
         let mut b = Vec3A::from(a);
@@ -682,7 +652,7 @@ mod dvec3 {
     use glam::{dvec3, DVec3, DVec3Mask};
 
     #[test]
-    fn test_vec3_align() {
+    fn test_align() {
         use std::mem;
         assert_eq!(24, mem::size_of::<DVec3>());
         assert_eq!(8, mem::align_of::<DVec3>());

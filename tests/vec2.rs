@@ -4,7 +4,7 @@ mod support;
 macro_rules! impl_vec2_tests {
     ($new:ident, $vec2:ident, $vec3:ident, $mask:ident, $t:ident) => {
         #[test]
-        fn test_vec2_new() {
+        fn test_new() {
             let v = $new(1.0, 2.0);
 
             assert_eq!(v.x, 1.0);
@@ -27,7 +27,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2_fmt() {
+        fn test_fmt() {
             let a = $vec2::new(1.0, 2.0);
             assert_eq!(
                 format!("{:?}", a),
@@ -38,20 +38,20 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2_zero() {
+        fn test_zero() {
             let v = $vec2::zero();
             assert_eq!($new(0.0, 0.0), v);
             assert_eq!(v, $vec2::default());
         }
 
         #[test]
-        fn test_vec2_splat() {
+        fn test_splat() {
             let v = $vec2::splat(1.0);
             assert_eq!($new(1.0, 1.0), v);
         }
 
         #[test]
-        fn test_vec2_accessors() {
+        fn test_accessors() {
             let mut a = $vec2::zero();
             a.x = 1.0;
             a.y = 2.0;
@@ -68,7 +68,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2_funcs() {
+        fn test_funcs() {
             let x = $new(1.0, 0.0);
             let y = $new(0.0, 1.0);
             assert_eq!(1.0, x.dot(x));
@@ -103,7 +103,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2_ops() {
+        fn test_ops() {
             let a = $new(1.0, 2.0);
             assert_eq!($new(2.0, 4.0), (a + a));
             assert_eq!($new(0.0, 0.0), (a - a));
@@ -117,7 +117,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2_assign_ops() {
+        fn test_assign_ops() {
             let a = $new(1.0, 2.0);
             let mut b = a;
             b += a;
@@ -135,7 +135,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2_min_max() {
+        fn test_min_max() {
             let a = $new(-1.0, 2.0);
             let b = $new(1.0, -2.0);
             assert_eq!($new(-1.0, -2.0), a.min(b));
@@ -145,14 +145,14 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2_hmin_hmax() {
+        fn test_hmin_hmax() {
             let a = $new(-1.0, 2.0);
             assert_eq!(-1.0, a.min_element());
             assert_eq!(2.0, a.max_element());
         }
 
         #[test]
-        fn test_vec2_eq() {
+        fn test_eq() {
             let a = $new(1.0, 1.0);
             let b = $new(1.0, 2.0);
             assert!(a.cmpeq(a).all());
@@ -163,7 +163,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2_cmp() {
+        fn test_cmp() {
             assert!(!$mask::default().any());
             assert!(!$mask::default().all());
             assert_eq!($mask::default().bitmask(), 0x0);
@@ -209,7 +209,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2mask_as_ref() {
+        fn test_mask_as_ref() {
             assert_eq!($mask::new(false, false).as_ref(), &[0, 0]);
             assert_eq!($mask::new(true, false).as_ref(), &[!0, 0]);
             assert_eq!($mask::new(false, true).as_ref(), &[0, !0]);
@@ -217,7 +217,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2mask_from() {
+        fn test_mask_from() {
             assert_eq!(Into::<[u32; 2]>::into($mask::new(false, false)), [0, 0]);
             assert_eq!(Into::<[u32; 2]>::into($mask::new(true, false)), [!0, 0]);
             assert_eq!(Into::<[u32; 2]>::into($mask::new(false, true)), [0, !0]);
@@ -225,7 +225,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2mask_bitmask() {
+        fn test_mask_bitmask() {
             assert_eq!($mask::new(false, false).bitmask(), 0b00);
             assert_eq!($mask::new(true, false).bitmask(), 0b01);
             assert_eq!($mask::new(false, true).bitmask(), 0b10);
@@ -233,7 +233,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2mask_any() {
+        fn test_mask_any() {
             assert_eq!($mask::new(false, false).any(), false);
             assert_eq!($mask::new(true, false).any(), true);
             assert_eq!($mask::new(false, true).any(), true);
@@ -241,7 +241,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2mask_all() {
+        fn test_mask_all() {
             assert_eq!($mask::new(false, false).all(), false);
             assert_eq!($mask::new(true, false).all(), false);
             assert_eq!($mask::new(false, true).all(), false);
@@ -249,7 +249,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2mask_select() {
+        fn test_mask_select() {
             let a = $vec2::new(1.0, 2.0);
             let b = $vec2::new(3.0, 4.0);
             assert_eq!(
@@ -271,7 +271,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2mask_and() {
+        fn test_mask_and() {
             assert_eq!(
                 ($mask::new(false, false) & $mask::new(false, false)).bitmask(),
                 0b00,
@@ -295,7 +295,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2mask_or() {
+        fn test_mask_or() {
             assert_eq!(
                 ($mask::new(false, false) | $mask::new(false, false)).bitmask(),
                 0b00,
@@ -319,7 +319,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2mask_not() {
+        fn test_mask_not() {
             assert_eq!((!$mask::new(false, false)).bitmask(), 0b11);
             assert_eq!((!$mask::new(true, false)).bitmask(), 0b10);
             assert_eq!((!$mask::new(false, true)).bitmask(), 0b01);
@@ -327,7 +327,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2mask_fmt() {
+        fn test_mask_fmt() {
             let a = $mask::new(true, false);
 
             assert_eq!(
@@ -338,7 +338,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2mask_eq() {
+        fn test_mask_eq() {
             let a = $mask::new(true, false);
             let b = $mask::new(true, false);
             let c = $mask::new(false, true);
@@ -353,7 +353,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2mask_hash() {
+        fn test_mask_hash() {
             use std::collections::hash_map::DefaultHasher;
             use std::hash::Hash;
             use std::hash::Hasher;
@@ -381,7 +381,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2_sign() {
+        fn test_sign() {
             assert_eq!($vec2::zero().signum(), $vec2::one());
             assert_eq!(-$vec2::zero().signum(), -$vec2::one());
             assert_eq!($vec2::one().signum(), $vec2::one());
@@ -392,14 +392,14 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2_abs() {
+        fn test_abs() {
             assert_eq!($vec2::zero().abs(), $vec2::zero());
             assert_eq!($vec2::one().abs(), $vec2::one());
             assert_eq!((-$vec2::one()).abs(), $vec2::one());
         }
 
         #[test]
-        fn test_vec2_round() {
+        fn test_round() {
             assert_eq!($vec2::new(1.35, 0.0).round().x, 1.0);
             assert_eq!($vec2::new(0.0, 1.5).round().y, 2.0);
             assert_eq!($vec2::new(0.0, -15.5).round().y, -16.0);
@@ -415,7 +415,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2_floor() {
+        fn test_floor() {
             assert_eq!($vec2::new(1.35, -1.5).floor(), $vec2::new(1.0, -2.0));
             assert_eq!(
                 $vec2::new($t::INFINITY, $t::NEG_INFINITY).floor(),
@@ -429,7 +429,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2_ceil() {
+        fn test_ceil() {
             assert_eq!($vec2::new(1.35, -1.5).ceil(), $vec2::new(2.0, -1.0));
             assert_eq!(
                 $vec2::new($t::INFINITY, $t::NEG_INFINITY).ceil(),
@@ -443,7 +443,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2_lerp() {
+        fn test_lerp() {
             let v0 = $vec2::new(-1.0, -1.0);
             let v1 = $vec2::new(1.0, 1.0);
             assert_approx_eq!(v0, v0.lerp(v1, 0.0));
@@ -452,7 +452,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2_to_from_slice() {
+        fn test_to_from_slice() {
             let v = $vec2::new(1.0, 2.0);
             let mut a = [0.0, 0.0];
             v.write_to_slice_unaligned(&mut a);
@@ -460,7 +460,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2_angle_between() {
+        fn test_angle_between() {
             let angle = $vec2::new(1.0, 0.0).angle_between($vec2::new(0.0, 1.0));
             assert_approx_eq!(core::$t::consts::FRAC_PI_2, angle, 1e-6);
 
@@ -469,34 +469,6 @@ macro_rules! impl_vec2_tests {
 
             let angle = $vec2::new(-1.0, 0.0).angle_between($vec2::new(0.0, 1.0));
             assert_approx_eq!(-core::$t::consts::FRAC_PI_2, angle, 1e-6);
-        }
-
-        #[cfg(feature = "serde")]
-        #[test]
-        fn test_vec2_serde() {
-            let a = $vec2::new(1.0, 2.0);
-            let serialized = serde_json::to_string(&a).unwrap();
-            assert_eq!(serialized, "[1.0,2.0]");
-            let deserialized = serde_json::from_str(&serialized).unwrap();
-            assert_eq!(a, deserialized);
-            let deserialized = serde_json::from_str::<$vec2>("[]");
-            assert!(deserialized.is_err());
-            let deserialized = serde_json::from_str::<$vec2>("[1.0]");
-            assert!(deserialized.is_err());
-            let deserialized = serde_json::from_str::<$vec2>("[1.0,2.0,3.0]");
-            assert!(deserialized.is_err());
-        }
-
-        #[cfg(feature = "rand")]
-        #[test]
-        fn test_vec2_rand() {
-            use rand::{Rng, SeedableRng};
-            use rand_xoshiro::Xoshiro256Plus;
-            let mut rng1 = Xoshiro256Plus::seed_from_u64(0);
-            let a: ($t, $t) = rng1.gen();
-            let mut rng2 = Xoshiro256Plus::seed_from_u64(0);
-            let b: $vec2 = rng2.gen();
-            assert_eq!(a, b.into());
         }
 
         #[cfg(feature = "std")]
@@ -514,7 +486,7 @@ macro_rules! impl_vec2_tests {
         }
 
         #[test]
-        fn test_vec2_is_finite() {
+        fn test_is_finite() {
             use std::$t::INFINITY;
             use std::$t::NAN;
             use std::$t::NEG_INFINITY;
@@ -545,7 +517,7 @@ mod vec2 {
     use glam::{vec2, Mat2, Vec2, Vec2Mask, Vec3};
 
     #[test]
-    fn test_vec2_align() {
+    fn test_align() {
         use core::mem;
         assert_eq!(8, mem::size_of::<Vec2>());
         assert_eq!(4, mem::align_of::<Vec2>());
@@ -554,7 +526,7 @@ mod vec2 {
     }
 
     #[test]
-    fn test_vec2_perp() {
+    fn test_perp() {
         let v1 = Vec2::new(1.0, 2.0);
         let v2 = Vec2::new(1.0, 1.0);
         let v1_perp = Vec2::new(-2.0, 1.0);
@@ -575,7 +547,7 @@ mod dvec2 {
     use glam::{dvec2, DVec2, DVec2Mask, DVec3};
 
     #[test]
-    fn test_vec2_align() {
+    fn test_align() {
         use core::mem;
         assert_eq!(16, mem::size_of::<DVec2>());
         assert_eq!(8, mem::align_of::<DVec2>());
