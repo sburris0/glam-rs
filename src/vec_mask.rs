@@ -1,4 +1,6 @@
-use crate::vector_traits::{MaskVector, MaskVector2, MaskVector3, MaskVector4, MaskVectorConsts};
+use crate::core::vector_traits::{
+    MaskVector, MaskVector2, MaskVector3, MaskVector4, MaskVectorConsts,
+};
 use core::{cmp::Ordering, hash};
 use core::{fmt, ops::*};
 

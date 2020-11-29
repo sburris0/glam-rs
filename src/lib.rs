@@ -189,9 +189,7 @@ compile_error!("`bytemuck` feature is not supported when building for SPIRV");
 #[macro_use]
 mod macros;
 
-mod scalar_traits;
-mod storage;
-mod vector_traits;
+mod core;
 
 mod vec2;
 mod vec3;
@@ -211,7 +209,7 @@ pub use self::vec_mask::{Vec2Mask, Vec3AMask, Vec3Mask, Vec4Mask};
 #[doc(hidden)]
 pub mod f32;
 
-pub use self::storage::{XY, XYZ, XYZW};
+pub use self::core::storage::{XY, XYZ, XYZW};
 
 pub use self::f32::{mat2, mat3, mat4, quat, Mat2, Mat3, Mat4, Quat};
 pub mod swizzles {
@@ -221,30 +219,3 @@ pub use swizzles::{Vec2Swizzles, Vec3ASwizzles, Vec3Swizzles, Vec4Swizzles};
 
 #[cfg(feature = "transform-types")]
 pub use self::f32::{TransformRT, TransformSRT};
-
-#[repr(align(16))]
-pub(crate) struct Align16<T>(T);
-
-impl<T> Align16<T> {
-    #[allow(dead_code)]
-    pub fn as_ptr(&self) -> *const T {
-        &self.0
-    }
-
-    #[allow(dead_code)]
-    pub fn as_mut_ptr(&mut self) -> *mut T {
-        &mut self.0
-    }
-}
-
-#[test]
-fn test_align16() {
-    use core::{mem, ptr};
-    let mut a = Align16::<f32>(1.0);
-    assert_eq!(mem::align_of_val(&a), 16);
-    unsafe {
-        assert_eq!(ptr::read(a.as_ptr()), 1.0);
-        ptr::write(a.as_mut_ptr(), -1.0);
-    }
-    assert_eq!(a.0, -1.0);
-}

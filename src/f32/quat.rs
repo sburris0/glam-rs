@@ -2,7 +2,7 @@
 use num_traits::Float;
 
 use super::{scalar_acos, scalar_sin_cos};
-use crate::vector_traits::*;
+use crate::core::vector_traits::*;
 use crate::{Mat3, Mat4, Vec3, Vec3A, Vec4, Vec4Swizzles};
 
 #[cfg(all(
