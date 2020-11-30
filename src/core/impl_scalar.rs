@@ -1,6 +1,9 @@
-use super::scalar_traits::{Float, MaskConsts, Num, NumConsts};
-use super::storage::{XY, XYZ, XYZW};
-use super::vector_traits::*;
+use super::{
+    quaternion_traits::Quaternion,
+    scalar_traits::{Float, MaskConsts, Num, NumConsts},
+    storage::{XY, XYZ, XYZW},
+    vector_traits::*,
+};
 
 impl<T> XY<T> {
     #[inline(always)]
@@ -1132,12 +1135,20 @@ impl<T: Float> Quaternion<T> for XYZW<T> {
         }
     }
 
-    // fn rotate_vector<T: FloatVector3>(self, other: T) -> T {
-    //     let w = self.w;
-    //     let b = XYZ { x: self.x, y: self.y, z: self.z };
-    //     let b2 = b.dot(b);
-    //     other * (w * w - b2) + b * (other.dot(b) * 2.0) + b.cross(other) * (w * 2.0)
-    // }
+    fn mul_vector3(self, other: XYZ<T>) -> XYZ<T> {
+        glam_assert!(FloatVector4::is_normalized(self));
+        let w = self.w;
+        let b = XYZ {
+            x: self.x,
+            y: self.y,
+            z: self.z,
+        };
+        let b2 = b.dot(b);
+        other
+            .mul_scalar(w * w - b2)
+            .add(b.mul_scalar(other.dot(b) * T::TWO))
+            .add(b.cross(other).mul_scalar(w * T::TWO))
+    }
 
     fn mul_quaternion(self, other: Self) -> Self {
         glam_assert!(FloatVector4::is_normalized(self));

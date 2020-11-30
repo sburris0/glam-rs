@@ -66,6 +66,18 @@ impl Distribution<Vec4> for Standard {
 }
 
 #[test]
+fn test_quat_rand() {
+    use rand::{Rng, SeedableRng};
+    use rand_xoshiro::Xoshiro256Plus;
+    let mut rng1 = Xoshiro256Plus::seed_from_u64(0);
+    let a: Quat = rng1.gen();
+    assert!(a.is_normalized());
+    let mut rng2 = Xoshiro256Plus::seed_from_u64(0);
+    let b: Quat = rng2.gen();
+    assert_eq!(a, b);
+}
+
+#[test]
 fn test_vec2_rand() {
     use rand::{Rng, SeedableRng};
     use rand_xoshiro::Xoshiro256Plus;

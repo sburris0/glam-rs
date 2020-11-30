@@ -1,22 +1,38 @@
 #[macro_use]
 mod macros;
 
-use glam::{DVec2, DVec3, DVec4, Mat2, Mat3, Mat4, Quat, Vec2, Vec3, Vec3A, Vec4};
+use glam::{DQuat, DVec2, DVec3, DVec4, Mat2, Mat3, Mat4, Quat, Vec2, Vec3, Vec3A, Vec4};
 
 #[cfg(feature = "transform-types")]
 use glam::{TransformRT, TransformSRT};
 
+pub trait Deg {
+    fn to_radians(self) -> Self;
+}
+
+impl Deg for f32 {
+    fn to_radians(self) -> f32 {
+        f32::to_radians(self)
+    }
+}
+
+impl Deg for f64 {
+    fn to_radians(self) -> f64 {
+        f64::to_radians(self)
+    }
+}
+
 /// Helper function for migrating away from `glam::angle::deg`.
 #[allow(dead_code)]
 #[inline]
-pub fn deg(angle: f32) -> f32 {
+pub fn deg<T: Deg>(angle: T) -> T {
     angle.to_radians()
 }
 
 /// Helper function for migrating away from `glam::angle::rad`.
 #[allow(dead_code)]
 #[inline]
-pub fn rad(angle: f32) -> f32 {
+pub fn rad<T>(angle: T) -> T {
     angle
 }
 
@@ -151,6 +167,19 @@ impl FloatCompare for Vec4 {
     #[inline]
     fn abs_diff(&self, other: &Self) -> Self {
         (*self - *other).abs()
+    }
+}
+
+impl FloatCompare for DQuat {
+    #[inline]
+    fn approx_eq(&self, other: &Self, max_abs_diff: f32) -> bool {
+        self.abs_diff_eq(*other, max_abs_diff as f64)
+    }
+    #[inline]
+    fn abs_diff(&self, other: &Self) -> Self {
+        let a: DVec4 = (*self).into();
+        let b: DVec4 = (*other).into();
+        (a - b).abs().into()
     }
 }
 

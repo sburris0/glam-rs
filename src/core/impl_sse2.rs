@@ -3,9 +3,12 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-use super::scalar_traits::MaskConsts;
-use super::storage::{Align16, XY, XYZ, XYZW};
-use super::vector_traits::*;
+use super::{
+    quaternion_traits::Quaternion,
+    scalar_traits::MaskConsts,
+    storage::{Align16, XY, XYZ, XYZW},
+    vector_traits::*,
+};
 use crate::const_m128;
 use core::mem::MaybeUninit;
 
@@ -549,32 +552,6 @@ impl FloatVector4<f32> for __m128 {
 }
 
 impl Quaternion<f32> for __m128 {
-    // fn from_axis_angle(axis: XYZ<T>, angle: T) -> Self {
-    // }
-
-    // fn to_axis_angle(self) -> (XYZ<T>, T) {
-    // }
-
-    //fn is_near_identity(self) -> bool {
-    //    // Based on https://github.com/nfrechette/rtm `rtm::quat_near_identity`
-    //    const THRESHOLD_ANGLE: f32 = 0.002_847_144_6;
-    //    // Because of floating point precision, we cannot represent very small rotations.
-    //    // The closest f32 to 1.0 that is not 1.0 itself yields:
-    //    // 0.99999994.acos() * 2.0  = 0.000690533954 rad
-    //    //
-    //    // An error threshold of 1.e-6 is used by default.
-    //    // (1.0 - 1.e-6).acos() * 2.0 = 0.00284714461 rad
-    //    // (1.0 - 1.e-7).acos() * 2.0 = 0.00097656250 rad
-    //    //
-    //    // We don't really care about the angle value itself, only if it's close to 0.
-    //    // This will happen whenever quat.w is close to 1.0.
-    //    // If the quat.w is close to -1.0, the angle will be near 2*PI which is close to
-    //    // a negative 0 rotation. By forcing quat.w to be positive, we'll end up with
-    //    // the shortest path.
-    //    let positive_w_angle = self.w.abs().acos_approx() * 2.0;
-    //    positive_w_angle < THRESHOLD_ANGLE
-    //}
-
     fn conjugate(self) -> Self {
         const SIGN: __m128 = const_m128!([-0.0, -0.0, -0.0, 0.0]);
         unsafe { _mm_xor_ps(self, SIGN) }
@@ -671,6 +648,22 @@ impl Quaternion<f32> for __m128 {
             let nlyrz_lxrz_lwrz_wlzrz = _mm_mul_ps(lyrz_lxrz_lwrz_lzrz, CONTROL_YXWZ);
             let result1 = _mm_add_ps(lzry_lwry_nlxry_nlyry, nlyrz_lxrz_lwrz_wlzrz);
             _mm_add_ps(result0, result1)
+        }
+    }
+
+    fn mul_vector3(self, other: XYZ<f32>) -> XYZ<f32> {
+        glam_assert!(FloatVector4::is_normalized(self));
+        unsafe {
+            const TWO: __m128 = const_m128!([2.0; 4]);
+            let other = _mm_set_ps(0.0, other.z, other.y, other.x);
+            let w = _mm_shuffle_ps(self, self, 0b11_11_11_11);
+            let b = self;
+            let b2 = FloatVector3::dot_into_vec(b, b);
+            other
+                .mul(w.mul(w).sub(b2))
+                .add(b.mul(FloatVector3::dot_into_vec(other, b).mul(TWO)))
+                .add(b.cross(other).mul(w.mul(TWO)))
+                .into()
         }
     }
 }
