@@ -40,6 +40,7 @@ pub trait Float: Num + Neg<Output = Self> + FloatConsts {
     fn abs(self) -> Self;
     fn ceil(self) -> Self;
     fn floor(self) -> Self;
+    fn is_finite(self) -> bool;
     fn is_nan(self) -> bool;
     fn recip(self) -> Self;
     fn round(self) -> Self;
@@ -102,6 +103,10 @@ impl Float for f32 {
     #[inline(always)]
     fn floor(self) -> Self {
         Self::floor(self)
+    }
+    #[inline(always)]
+    fn is_finite(self) -> bool {
+        Self::is_finite(self)
     }
     #[inline(always)]
     fn is_nan(self) -> bool {
@@ -179,6 +184,10 @@ impl Float for f64 {
     #[inline(always)]
     fn floor(self) -> Self {
         Self::floor(self)
+    }
+    #[inline(always)]
+    fn is_finite(self) -> bool {
+        Self::is_finite(self)
     }
     #[inline(always)]
     fn is_nan(self) -> bool {

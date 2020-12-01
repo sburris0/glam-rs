@@ -587,7 +587,7 @@ mod vec3a {
     use glam::{vec3a, Vec3A, Vec3AMask, Vec4};
 
     #[test]
-    fn test_vec3a_align() {
+    fn test_align() {
         use std::mem;
         assert_eq!(16, mem::size_of::<Vec3A>());
         assert_eq!(16, mem::align_of::<Vec3A>());
@@ -614,7 +614,7 @@ mod vec3a {
 
     #[cfg(vec3a_sse2)]
     #[test]
-    fn test_vec3a_m128() {
+    fn test_m128() {
         #[cfg(target_arch = "x86")]
         use core::arch::x86::*;
         #[cfg(target_arch = "x86_64")]
@@ -643,6 +643,14 @@ mod vec3a {
             _mm_store_ps(a0.0.as_mut_ptr() as *mut f32, m0);
         }
         assert_eq!([0xffffffff, 0, 0xffffffff], a0.0);
+    }
+
+    #[test]
+    fn test_min_max_from_vec4() {
+        let v1 = Vec3A::from(Vec4::new(1.0, 2.0, 3.0, 4.0));
+        assert_eq!(v1.max_element(), 3.0);
+        let v2 = Vec3A::from(Vec4::new(4.0, 3.0, 2.0, 1.0));
+        assert_eq!(v2.min_element(), 2.0);
     }
 
     impl_vec3_tests!(vec3a, Vec3A, Vec3AMask, f32);

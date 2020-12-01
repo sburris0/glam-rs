@@ -84,9 +84,6 @@ pub trait Vector<T>: Sized + Copy + Clone {
 
     fn min(self, other: Self) -> Self;
     fn max(self, other: Self) -> Self;
-
-    fn min_element(self) -> T;
-    fn max_element(self) -> T;
 }
 
 pub trait Vector2<T>: Vector<T> {
@@ -101,6 +98,16 @@ pub trait Vector2<T>: Vector<T> {
     fn into_array(self) -> [T; 2];
     fn from_tuple(t: (T, T)) -> Self;
     fn into_tuple(self) -> (T, T);
+
+    fn min_element(self) -> T;
+    fn max_element(self) -> T;
+
+    fn dot(self, other: Self) -> T;
+
+    #[inline]
+    fn dot_into_vec(self, other: Self) -> Self {
+        Self::splat(self.dot(other))
+    }
 }
 
 pub trait Vector3<T>: Vector<T> {
@@ -115,6 +122,16 @@ pub trait Vector3<T>: Vector<T> {
     fn into_array(self) -> [T; 3];
     fn from_tuple(t: (T, T, T)) -> Self;
     fn into_tuple(self) -> (T, T, T);
+
+    fn min_element(self) -> T;
+    fn max_element(self) -> T;
+
+    fn dot(self, other: Self) -> T;
+
+    #[inline]
+    fn dot_into_vec(self, other: Self) -> Self {
+        Self::splat(self.dot(other))
+    }
 }
 
 pub trait Vector4<T>: Vector<T> {
@@ -129,13 +146,22 @@ pub trait Vector4<T>: Vector<T> {
     fn into_array(self) -> [T; 4];
     fn from_tuple(t: (T, T, T, T)) -> Self;
     fn into_tuple(self) -> (T, T, T, T);
+
+    fn min_element(self) -> T;
+    fn max_element(self) -> T;
+
+    fn dot(self, other: Self) -> T;
+
+    #[inline]
+    fn dot_into_vec(self, other: Self) -> Self {
+        Self::splat(self.dot(other))
+    }
 }
 
 pub trait FloatVector<T: Float>: Vector<T> {
     fn abs(self) -> Self;
     fn ceil(self) -> Self;
     fn floor(self) -> Self;
-    fn is_nan(self) -> Self::Mask;
     fn neg(self) -> Self;
     fn recip(self) -> Self;
     fn round(self) -> Self;
@@ -143,7 +169,9 @@ pub trait FloatVector<T: Float>: Vector<T> {
 }
 
 pub trait FloatVector2<T: Float>: FloatVector<T> + Vector2<T> {
-    fn dot(self, other: Self) -> T;
+    fn is_finite(self) -> bool;
+    fn is_nan(self) -> bool;
+    fn is_nan_mask(self) -> Self::Mask;
 
     #[inline]
     fn dot_into_vec(self, other: Self) -> Self {
@@ -201,7 +229,8 @@ pub trait FloatVector2<T: Float>: FloatVector<T> + Vector2<T> {
 }
 
 pub trait FloatVector3<T: Float>: FloatVector<T> + Vector3<T> {
-    fn dot(self, other: Self) -> T;
+    fn is_nan_mask(self) -> Self::Mask;
+
     fn cross(self, other: Self) -> Self;
 
     #[inline]
@@ -250,12 +279,7 @@ pub trait FloatVector3<T: Float>: FloatVector<T> + Vector3<T> {
 }
 
 pub trait FloatVector4<T: Float>: FloatVector<T> + Vector4<T> {
-    fn dot(self, other: Self) -> T;
-
-    #[inline]
-    fn dot_into_vec(self, other: Self) -> Self {
-        Self::splat(self.dot(other))
-    }
+    fn is_nan_mask(self) -> Self::Mask;
 
     #[inline]
     fn length(self) -> T {

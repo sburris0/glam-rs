@@ -142,7 +142,7 @@ macro_rules! impl_vec4 {
             /// Computes the 4D dot product of `self` and `other`.
             #[inline]
             pub fn dot(self, other: Self) -> $t {
-                FloatVector4::dot(self.0, other.0)
+                Vector4::dot(self.0, other.0)
             }
 
             /// Computes the 4D length of `self`.
@@ -157,7 +157,7 @@ macro_rules! impl_vec4 {
             /// root operation.
             #[inline]
             pub fn length_squared(self) -> $t {
-                FloatVector4::dot(self.0, self.0)
+                Vector4::dot(self.0, self.0)
             }
 
             /// Computes `1.0 / $vec4::length()`.
@@ -213,7 +213,7 @@ macro_rules! impl_vec4 {
             /// In other words, this computes `min(x, y, z, w)`.
             #[inline]
             pub fn min_element(self) -> $t {
-                self.0.min_element()
+                Vector4::min_element(self.0)
             }
 
             /// Returns the horizontal maximum of `self`'s elements.
@@ -221,7 +221,7 @@ macro_rules! impl_vec4 {
             /// In other words, this computes `max(x, y, z, w)`.
             #[inline]
             pub fn max_element(self) -> $t {
-                self.0.max_element()
+                Vector4::max_element(self.0)
             }
 
             /// Performs a vertical `==` comparison between `self` and `other`,
@@ -354,7 +354,7 @@ macro_rules! impl_vec4 {
             /// In other words, this computes `[x.is_nan(), y.is_nan(), z.is_nan(), w.is_nan()]`.
             #[inline]
             pub fn is_nan_mask(self) -> $mask {
-                $mask(self.0.is_nan())
+                $mask(FloatVector4::is_nan_mask(self.0))
             }
 
             /// Returns a `$vec4` with elements representing the sign of `self`.
@@ -394,7 +394,7 @@ macro_rules! impl_vec4 {
             /// Returns `true` if any elements are `NaN`.
             #[inline]
             pub fn is_nan(self) -> bool {
-                MaskVector4::all(FloatVector::is_nan(self.0))
+                MaskVector4::all(FloatVector4::is_nan_mask(self.0))
             }
 
             /// Returns whether `self` is length `1.0` or not.

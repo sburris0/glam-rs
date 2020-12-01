@@ -131,7 +131,7 @@ macro_rules! impl_quat {
             /// equal to the the cosine of the angle between two quaterion rotations.
             #[inline]
             pub fn dot(self, other: Self) -> $t {
-                FloatVector4::dot(self.0, other.0)
+                Vector4::dot(self.0, other.0)
             }
 
             /// Computes the length of `self`.
@@ -146,7 +146,7 @@ macro_rules! impl_quat {
             /// root operation.
             #[inline]
             pub fn length_squared(self) -> $t {
-                FloatVector4::dot(self.0, self.0)
+                Vector4::dot(self.0, self.0)
             }
 
             /// Computes `1.0 / $quat::length()`.
@@ -174,7 +174,7 @@ macro_rules! impl_quat {
             }
 
             pub fn is_nan(self) -> bool {
-                MaskVector4::any(FloatVector::is_nan(self.0))
+                MaskVector4::any(FloatVector4::is_nan_mask(self.0))
             }
 
             /// Returns whether `self` of length `1.0` or not.

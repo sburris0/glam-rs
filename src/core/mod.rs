@@ -1,3 +1,4 @@
+pub mod matrix_traits;
 pub mod quaternion_traits;
 pub mod scalar_traits;
 pub mod storage;

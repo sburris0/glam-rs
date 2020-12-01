@@ -139,7 +139,7 @@ macro_rules! impl_vec3 {
             /// Computes the dot product of `self` and `other`.
             #[inline]
             pub fn dot(self, other: Self) -> $t {
-                FloatVector3::dot(self.0, other.0)
+                Vector3::dot(self.0, other.0)
             }
 
             /// Returns $vec3 dot in all lanes of $vec3
@@ -223,7 +223,7 @@ macro_rules! impl_vec3 {
             /// In other words, this computes `min(x, y, z)`.
             #[inline]
             pub fn min_element(self) -> $t {
-                self.0.min_element()
+                Vector3::min_element(self.0)
             }
 
             /// Returns the horizontal maximum of `self`'s elements.
@@ -231,7 +231,7 @@ macro_rules! impl_vec3 {
             /// In other words, this computes `max(x, y, z)`.
             #[inline]
             pub fn max_element(self) -> $t {
-                self.0.max_element()
+                Vector3::max_element(self.0)
             }
 
             /// Performs a vertical `==` comparison between `self` and `other`,
@@ -359,7 +359,7 @@ macro_rules! impl_vec3 {
             /// In other words, this computes `[x.is_nan(), y.is_nan(), z.is_nan()]`.
             #[inline]
             pub fn is_nan_mask(self) -> $mask {
-                $mask(self.0.is_nan())
+                $mask(FloatVector3::is_nan_mask(self.0))
             }
 
             /// Returns a `$vec3` with elements representing the sign of `self`.
@@ -406,7 +406,7 @@ macro_rules! impl_vec3 {
             /// Returns `true` if any elements are `NaN`.
             #[inline]
             pub fn is_nan(self) -> bool {
-                MaskVector3::all(self.0.is_nan())
+                MaskVector3::all(FloatVector3::is_nan_mask(self.0))
             }
 
             /// Returns true if the absolute difference of all elements between `self`

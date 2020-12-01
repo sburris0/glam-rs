@@ -1,9 +1,5 @@
-use crate::swizzles::*;
-use crate::{Vec2, Vec4};
-#[cfg(all(vec4_sse2, target_arch = "x86",))]
-use core::arch::x86::*;
-#[cfg(all(vec4_sse2, target_arch = "x86_64",))]
-use core::arch::x86_64::*;
+use crate::core::matrix_traits::*;
+use crate::Vec2;
 #[cfg(not(target_arch = "spirv"))]
 use core::fmt;
 use core::ops::{Add, Deref, DerefMut, Mul, Sub};
@@ -14,13 +10,6 @@ use std::iter::{Product, Sum};
 const ZERO: Mat2 = const_mat2!([0.0; 4]);
 const IDENTITY: Mat2 = const_mat2!([1.0, 0.0], [0.0, 1.0]);
 
-#[derive(Clone, Copy)]
-#[repr(C)]
-pub struct XYAxes {
-    pub x_axis: Vec2,
-    pub y_axis: Vec2,
-}
-
 /// Creates a `Mat2` from two column vectors.
 #[inline]
 pub fn mat2(x_axis: Vec2, y_axis: Vec2) -> Mat2 {
@@ -30,23 +19,27 @@ pub fn mat2(x_axis: Vec2, y_axis: Vec2) -> Mat2 {
 /// A 2x2 column major matrix.
 #[cfg(doc)]
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
-#[cfg_attr(not(target_arch = "spirv"), derive(Debug))]
 #[repr(C)]
 pub struct Mat2 {
     pub x_axis: Vec2,
     pub y_axis: Vec2,
 }
 
+// #[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
+type InnerF32 = crate::core::storage::XYAxes<f32>;
+
+// #[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
+// type InnerF32 = __m128;
+
 #[cfg(not(doc))]
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
-#[cfg_attr(not(target_arch = "spirv"), derive(Debug))]
 #[repr(C)]
-pub struct Mat2(pub(crate) Vec4);
+pub struct Mat2(pub(crate) InnerF32);
 
 impl Default for Mat2 {
     #[inline]
     fn default() -> Self {
-        IDENTITY
+        Self(InnerF32::IDENTITY)
     }
 }
 
@@ -73,7 +66,7 @@ impl Mat2 {
     /// Creates a 2x2 matrix from two column vectors.
     #[inline]
     pub fn from_cols(x_axis: Vec2, y_axis: Vec2) -> Self {
-        Self(Vec4::new(x_axis.x, x_axis.y, y_axis.x, y_axis.y))
+        Self(InnerF32::from_cols(x_axis.0, y_axis.0))
     }
 
     /// Creates a 2x2 matrix from a `[f32; 4]` stored in column major order.  If
@@ -81,14 +74,14 @@ impl Mat2 {
     /// returned matrix.
     #[inline]
     pub fn from_cols_array(m: &[f32; 4]) -> Self {
-        Mat2(Vec4::new(m[0], m[1], m[2], m[3]))
+        Self(InnerF32::from_cols_array(m))
     }
 
     /// Creates a `[f32; 4]` storing data in column major order.
     /// If you require data in row major order `transpose` the matrix first.
     #[inline]
     pub fn to_cols_array(&self) -> [f32; 4] {
-        self.0.into()
+        self.0.to_cols_array()
     }
 
     /// Creates a 2x2 matrix from a `[[f32; 2]; 2]` stored in column major
@@ -96,43 +89,33 @@ impl Mat2 {
     /// the returned matrix.
     #[inline]
     pub fn from_cols_array_2d(m: &[[f32; 2]; 2]) -> Self {
-        Mat2(Vec4::new(m[0][0], m[0][1], m[1][0], m[1][1]))
+        Mat2(InnerF32::from_cols_array_2d(m))
     }
 
     /// Creates a `[[f32; 2]; 2]` storing data in column major order.
     /// If you require data in row major order `transpose` the matrix first.
     #[inline]
     pub fn to_cols_array_2d(&self) -> [[f32; 2]; 2] {
-        let (x0, y0, x1, y1) = self.0.into();
-        [[x0, y0], [x1, y1]]
+        self.0.to_cols_array_2d()
     }
 
     /// Creates a 2x2 matrix containing the given `scale` and rotation of
     /// `angle` (in radians).
     #[inline]
     pub fn from_scale_angle(scale: Vec2, angle: f32) -> Self {
-        let (sin, cos) = angle.sin_cos();
-        let (scale_x, scale_y) = scale.into();
-        Self(Vec4::new(
-            cos * scale_x,
-            sin * scale_x,
-            -sin * scale_y,
-            cos * scale_y,
-        ))
+        Self(InnerF32::from_scale_angle(scale.0, angle))
     }
 
     /// Creates a 2x2 matrix containing a rotation of `angle` (in radians).
     #[inline]
     pub fn from_angle(angle: f32) -> Self {
-        let (sin, cos) = angle.sin_cos();
-        Self(Vec4::new(cos, sin, -sin, cos))
+        Self(InnerF32::from_angle(angle))
     }
 
     /// Creates a 2x2 matrix containing the given non-uniform `scale`.
     #[inline]
     pub fn from_scale(scale: Vec2) -> Self {
-        let (x, y) = scale.into();
-        Self(Vec4::new(x, 0.0, 0.0, y))
+        Self(InnerF32::from_scale(scale.0))
     }
 
     // #[inline]
@@ -163,6 +146,7 @@ impl Mat2 {
     /// If any element is either `NaN`, positive or negative infinity, this will return `false`.
     #[inline]
     pub fn is_finite(&self) -> bool {
+        // TODO
         self.x_axis.is_finite() && self.y_axis.is_finite()
     }
 
@@ -175,37 +159,27 @@ impl Mat2 {
     /// Returns the transpose of `self`.
     #[inline]
     pub fn transpose(&self) -> Self {
-        #[cfg(vec4_sse2)]
-        unsafe {
-            let abcd = self.0.into();
-            let acbd = _mm_shuffle_ps(abcd, abcd, 0b11_01_10_00);
-            Self(acbd.into())
-        }
-
-        #[cfg(vec4_f32)]
-        {
-            let (m00, m01, m10, m11) = self.0.into();
-            Self(Vec4::new(m00, m10, m01, m11))
-        }
+        Self(self.0.transpose())
+        // #[cfg(vec4_sse2)]
+        // unsafe {
+        //     let abcd = self.0.into();
+        //     let acbd = _mm_shuffle_ps(abcd, abcd, 0b11_01_10_00);
+        //     Self(acbd.into())
+        // }
     }
 
     /// Returns the determinant of `self`.
     #[inline]
     pub fn determinant(&self) -> f32 {
-        #[cfg(vec4_sse2)]
-        unsafe {
-            let abcd = self.0.into();
-            let dcba = _mm_shuffle_ps(abcd, abcd, 0b00_01_10_11);
-            let prod = _mm_mul_ps(abcd, dcba);
-            let det = _mm_sub_ps(prod, _mm_shuffle_ps(prod, prod, 0b01_01_01_01));
-            _mm_cvtss_f32(det)
-        }
-
-        #[cfg(vec4_f32)]
-        {
-            let (a, b, c, d) = self.0.into();
-            a * d - b * c
-        }
+        self.0.determinant()
+        // #[cfg(vec4_sse2)]
+        // unsafe {
+        //     let abcd = self.0.into();
+        //     let dcba = _mm_shuffle_ps(abcd, abcd, 0b00_01_10_11);
+        //     let prod = _mm_mul_ps(abcd, dcba);
+        //     let det = _mm_sub_ps(prod, _mm_shuffle_ps(prod, prod, 0b01_01_01_01));
+        //     _mm_cvtss_f32(det)
+        // }
     }
 
     /// Returns the inverse of `self`.
@@ -213,67 +187,49 @@ impl Mat2 {
     /// If the matrix is not invertible the returned matrix will be invalid.
     #[inline]
     pub fn inverse(&self) -> Self {
-        #[cfg(vec4_sse2)]
-        unsafe {
-            const SIGN: __m128 = const_m128!([1.0, -1.0, -1.0, 1.0]);
-            let abcd = self.0.into();
-            let dcba = _mm_shuffle_ps(abcd, abcd, 0b00_01_10_11);
-            let prod = _mm_mul_ps(abcd, dcba);
-            let sub = _mm_sub_ps(prod, _mm_shuffle_ps(prod, prod, 0b01_01_01_01));
-            let det = _mm_shuffle_ps(sub, sub, 0b00_00_00_00);
-            let tmp = _mm_div_ps(SIGN, det);
-            let dbca = _mm_shuffle_ps(abcd, abcd, 0b00_10_01_11);
-            Self(_mm_mul_ps(dbca, tmp).into())
-        }
-
-        #[cfg(vec4_f32)]
-        {
-            let (a, b, c, d) = self.0.into();
-            let det = a * d - b * c;
-            glam_assert!(det != 0.0);
-            let tmp = Vec4::new(1.0, -1.0, -1.0, 1.0) / det;
-            Self(Vec4::new(d, b, c, a) * tmp)
-        }
+        Self(self.0.inverse())
+        // #[cfg(vec4_sse2)]
+        // unsafe {
+        //     const SIGN: __m128 = const_m128!([1.0, -1.0, -1.0, 1.0]);
+        //     let abcd = self.0.into();
+        //     let dcba = _mm_shuffle_ps(abcd, abcd, 0b00_01_10_11);
+        //     let prod = _mm_mul_ps(abcd, dcba);
+        //     let sub = _mm_sub_ps(prod, _mm_shuffle_ps(prod, prod, 0b01_01_01_01));
+        //     let det = _mm_shuffle_ps(sub, sub, 0b00_00_00_00);
+        //     let tmp = _mm_div_ps(SIGN, det);
+        //     let dbca = _mm_shuffle_ps(abcd, abcd, 0b00_10_01_11);
+        //     Self(_mm_mul_ps(dbca, tmp).into())
+        // }
     }
 
     /// Transforms a `Vec2`.
     #[inline]
     pub fn mul_vec2(&self, other: Vec2) -> Vec2 {
-        // TODO: SSE2
-        let other = other.xxyy();
-        let tmp = self.0 * other;
-        let (x0, y0, x1, y1) = tmp.into();
-        Vec2::new(x0 + x1, y0 + y1)
+        Vec2(self.0.mul_vector(other.0))
     }
 
     /// Multiplies two 2x2 matrices.
     #[inline]
     pub fn mul_mat2(&self, other: &Self) -> Self {
-        // TODO: SSE2
-        let (x0, y0, x1, y1) = other.0.into();
-        Mat2::from_cols(
-            self.mul_vec2(Vec2::new(x0, y0)),
-            self.mul_vec2(Vec2::new(x1, y1)),
-        )
+        Mat2(self.0.mul_matrix(&other.0))
     }
 
     /// Adds two 2x2 matrices.
     #[inline]
     pub fn add_mat2(&self, other: &Self) -> Self {
-        Mat2(self.0 + other.0)
+        Mat2(self.0.add_matrix(&other.0))
     }
 
     /// Subtracts two 2x2 matrices.
     #[inline]
     pub fn sub_mat2(&self, other: &Self) -> Self {
-        Mat2(self.0 - other.0)
+        Mat2(self.0.sub_matrix(&other.0))
     }
 
     /// Multiplies a 2x2 matrix by a scalar.
     #[inline]
     pub fn mul_scalar(&self, other: f32) -> Self {
-        let s = Vec4::splat(other);
-        Mat2(self.0 * s)
+        Mat2(self.0.mul_scalar(other))
     }
 
     /// Returns true if the absolute difference of all elements between `self`
@@ -286,8 +242,17 @@ impl Mat2 {
     /// For more on floating point comparisons see
     /// https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
     #[inline]
-    pub fn abs_diff_eq(&self, other: Self, max_abs_diff: f32) -> bool {
-        self.0.abs_diff_eq(other.0, max_abs_diff)
+    pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: f32) -> bool {
+        self.0.abs_diff_eq(&other.0, max_abs_diff)
+    }
+}
+
+impl fmt::Debug for Mat2 {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.debug_struct("Mat2")
+            .field("x_axis", &self.x_axis)
+            .field("y_axis", &self.y_axis)
+            .finish()
     }
 }
 
@@ -309,7 +274,7 @@ impl Add<Mat2> for Mat2 {
     type Output = Self;
     #[inline]
     fn add(self, other: Self) -> Self {
-        self.add_mat2(&other)
+        Self(self.0.add_matrix(&other.0))
     }
 }
 
@@ -317,7 +282,7 @@ impl Sub<Mat2> for Mat2 {
     type Output = Self;
     #[inline]
     fn sub(self, other: Self) -> Self {
-        self.sub_mat2(&other)
+        Self(self.0.sub_matrix(&other.0))
     }
 }
 
@@ -325,7 +290,7 @@ impl Mul<Mat2> for Mat2 {
     type Output = Self;
     #[inline]
     fn mul(self, other: Self) -> Self {
-        self.mul_mat2(&other)
+        Self(self.0.mul_matrix(&other.0))
     }
 }
 
@@ -333,7 +298,7 @@ impl Mul<Vec2> for Mat2 {
     type Output = Vec2;
     #[inline]
     fn mul(self, other: Vec2) -> Vec2 {
-        self.mul_vec2(other)
+        Vec2(self.0.mul_vector(other.0))
     }
 }
 
@@ -341,7 +306,7 @@ impl Mul<Mat2> for f32 {
     type Output = Mat2;
     #[inline]
     fn mul(self, other: Mat2) -> Mat2 {
-        other.mul_scalar(self)
+        Mat2(other.0.mul_scalar(self))
     }
 }
 
@@ -349,12 +314,12 @@ impl Mul<f32> for Mat2 {
     type Output = Self;
     #[inline]
     fn mul(self, other: f32) -> Self {
-        self.mul_scalar(other)
+        Self(self.0.mul_scalar(other))
     }
 }
 
 impl Deref for Mat2 {
-    type Target = super::XYAxes;
+    type Target = crate::XYAxes;
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
         unsafe { &*(self as *const Self as *const Self::Target) }

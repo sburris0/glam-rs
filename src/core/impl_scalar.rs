@@ -188,7 +188,7 @@ impl MaskVector for XYZW<u32> {
 }
 
 impl MaskVector2 for XY<u32> {
-    #[inline]
+    #[inline(always)]
     fn new(x: bool, y: bool) -> Self {
         Self {
             x: MaskConsts::MASK[x as usize],
@@ -213,7 +213,7 @@ impl MaskVector2 for XY<u32> {
 }
 
 impl MaskVector3 for XYZ<u32> {
-    #[inline]
+    #[inline(always)]
     fn new(x: bool, y: bool, z: bool) -> Self {
         // A SSE2 mask can be any bit pattern but for the `Vec3Mask` implementation of select
         // we expect either 0 or 0xff_ff_ff_ff. This should be a safe assumption as this type
@@ -224,6 +224,7 @@ impl MaskVector3 for XYZ<u32> {
             z: MaskConsts::MASK[z as usize],
         }
     }
+
     #[inline]
     fn bitmask(self) -> u32 {
         (self.x & 0x1) | (self.y & 0x1) << 1 | (self.z & 0x1) << 2
@@ -241,7 +242,7 @@ impl MaskVector3 for XYZ<u32> {
 }
 
 impl MaskVector4 for XYZW<u32> {
-    #[inline]
+    #[inline(always)]
     fn new(x: bool, y: bool, z: bool, w: bool) -> Self {
         // A SSE2 mask can be any bit pattern but for the `Vec4Mask` implementation of select
         // we expect either 0 or 0xff_ff_ff_ff. This should be a safe assumption as this type
@@ -270,7 +271,7 @@ impl MaskVector4 for XYZW<u32> {
     }
 }
 
-impl<T: Float> VectorConsts for XY<T> {
+impl<T: Num> VectorConsts for XY<T> {
     const ZERO: Self = Self {
         x: <T as NumConsts>::ZERO,
         y: <T as NumConsts>::ZERO,
@@ -281,7 +282,7 @@ impl<T: Float> VectorConsts for XY<T> {
     };
 }
 
-impl<T: Float> Vector2Consts for XY<T> {
+impl<T: Num> Vector2Consts for XY<T> {
     const UNIT_X: Self = Self {
         x: <T as NumConsts>::ONE,
         y: <T as NumConsts>::ZERO,
@@ -292,7 +293,7 @@ impl<T: Float> Vector2Consts for XY<T> {
     };
 }
 
-impl<T: Float> VectorConsts for XYZ<T> {
+impl<T: Num> VectorConsts for XYZ<T> {
     const ZERO: Self = Self {
         x: <T as NumConsts>::ZERO,
         y: <T as NumConsts>::ZERO,
@@ -304,7 +305,7 @@ impl<T: Float> VectorConsts for XYZ<T> {
         z: <T as NumConsts>::ONE,
     };
 }
-impl<T: Float> Vector3Consts for XYZ<T> {
+impl<T: Num> Vector3Consts for XYZ<T> {
     const UNIT_X: Self = Self {
         x: <T as NumConsts>::ONE,
         y: <T as NumConsts>::ZERO,
@@ -322,7 +323,7 @@ impl<T: Float> Vector3Consts for XYZ<T> {
     };
 }
 
-impl<T: Float> VectorConsts for XYZW<T> {
+impl<T: Num> VectorConsts for XYZW<T> {
     const ZERO: Self = Self {
         x: <T as NumConsts>::ZERO,
         y: <T as NumConsts>::ZERO,
@@ -336,7 +337,7 @@ impl<T: Float> VectorConsts for XYZW<T> {
         w: <T as NumConsts>::ONE,
     };
 }
-impl<T: Float> Vector4Consts for XYZW<T> {
+impl<T: Num> Vector4Consts for XYZW<T> {
     const UNIT_X: Self = Self {
         x: <T as NumConsts>::ONE,
         y: <T as NumConsts>::ZERO,
@@ -453,16 +454,6 @@ impl<T: Num> Vector<T> for XY<T> {
     fn max(self, other: Self) -> Self {
         self.map2(other, |a, b| a.max(b))
     }
-
-    #[inline]
-    fn min_element(self) -> T {
-        self.x.min(self.y)
-    }
-
-    #[inline]
-    fn max_element(self) -> T {
-        self.x.max(self.y)
-    }
 }
 
 impl<T: Num> Vector<T> for XYZ<T> {
@@ -555,16 +546,6 @@ impl<T: Num> Vector<T> for XYZ<T> {
     #[inline]
     fn max(self, other: Self) -> Self {
         self.map2(other, |a, b| a.max(b))
-    }
-
-    #[inline]
-    fn min_element(self) -> T {
-        self.x.min(self.y.min(self.z))
-    }
-
-    #[inline]
-    fn max_element(self) -> T {
-        self.x.max(self.y.max(self.z))
     }
 }
 
@@ -665,6 +646,258 @@ impl<T: Num> Vector<T> for XYZW<T> {
     fn max(self, other: Self) -> Self {
         self.map2(other, |a, b| a.max(b))
     }
+}
+
+impl<T: Num> Vector2<T> for XY<T> {
+    #[inline(always)]
+    fn new(x: T, y: T) -> Self {
+        Self { x, y }
+    }
+
+    #[inline(always)]
+    fn from_slice_unaligned(slice: &[T]) -> Self {
+        Self {
+            x: slice[0],
+            y: slice[1],
+        }
+    }
+
+    #[inline(always)]
+    fn write_to_slice_unaligned(self, slice: &mut [T]) {
+        slice[0] = self.x;
+        slice[1] = self.y;
+    }
+
+    #[inline(always)]
+    fn deref(&self) -> &XY<T> {
+        self
+    }
+
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut XY<T> {
+        self
+    }
+
+    #[inline(always)]
+    fn into_xyz(self, z: T) -> XYZ<T> {
+        XYZ {
+            x: self.x,
+            y: self.y,
+            z,
+        }
+    }
+
+    #[inline(always)]
+    fn into_xyzw(self, z: T, w: T) -> XYZW<T> {
+        XYZW {
+            x: self.x,
+            y: self.y,
+            z,
+            w,
+        }
+    }
+
+    #[inline(always)]
+    fn from_array(a: [T; 2]) -> Self {
+        Self { x: a[0], y: a[1] }
+    }
+
+    #[inline(always)]
+    fn into_array(self) -> [T; 2] {
+        [self.x, self.y]
+    }
+
+    #[inline(always)]
+    fn from_tuple(t: (T, T)) -> Self {
+        Self::new(t.0, t.1)
+    }
+
+    #[inline(always)]
+    fn into_tuple(self) -> (T, T) {
+        (self.x, self.y)
+    }
+
+    #[inline]
+    fn min_element(self) -> T {
+        self.x.min(self.y)
+    }
+
+    #[inline]
+    fn max_element(self) -> T {
+        self.x.max(self.y)
+    }
+
+    #[inline]
+    fn dot(self, other: Self) -> T {
+        (self.x * other.x) + (self.y * other.y)
+    }
+}
+
+impl<T: Num> Vector3<T> for XYZ<T> {
+    #[inline(always)]
+    fn new(x: T, y: T, z: T) -> Self {
+        Self { x, y, z }
+    }
+
+    #[inline(always)]
+    fn from_slice_unaligned(slice: &[T]) -> Self {
+        Self {
+            x: slice[0],
+            y: slice[1],
+            z: slice[2],
+        }
+    }
+
+    #[inline(always)]
+    fn write_to_slice_unaligned(self, slice: &mut [T]) {
+        slice[0] = self.x;
+        slice[1] = self.y;
+        slice[2] = self.z;
+    }
+
+    #[inline(always)]
+    fn deref(&self) -> &XYZ<T> {
+        self
+    }
+
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut XYZ<T> {
+        self
+    }
+
+    #[inline(always)]
+    fn into_xy(self) -> XY<T> {
+        XY {
+            x: self.x,
+            y: self.y,
+        }
+    }
+
+    #[inline(always)]
+    fn into_xyzw(self, w: T) -> XYZW<T> {
+        XYZW {
+            x: self.x,
+            y: self.y,
+            z: self.z,
+            w,
+        }
+    }
+
+    #[inline(always)]
+    fn from_array(a: [T; 3]) -> Self {
+        Self {
+            x: a[0],
+            y: a[1],
+            z: a[2],
+        }
+    }
+
+    #[inline(always)]
+    fn into_array(self) -> [T; 3] {
+        [self.x, self.y, self.z]
+    }
+
+    #[inline(always)]
+    fn from_tuple(t: (T, T, T)) -> Self {
+        Self::new(t.0, t.1, t.2)
+    }
+
+    #[inline(always)]
+    fn into_tuple(self) -> (T, T, T) {
+        (self.x, self.y, self.z)
+    }
+
+    #[inline]
+    fn min_element(self) -> T {
+        self.x.min(self.y.min(self.z))
+    }
+
+    #[inline]
+    fn max_element(self) -> T {
+        self.x.max(self.y.max(self.z))
+    }
+
+    #[inline]
+    fn dot(self, other: Self) -> T {
+        (self.x * other.x) + (self.y * other.y) + (self.z * other.z)
+    }
+}
+
+impl<T: Num> Vector4<T> for XYZW<T> {
+    #[inline(always)]
+    fn new(x: T, y: T, z: T, w: T) -> Self {
+        Self { x, y, z, w }
+    }
+
+    #[inline(always)]
+    fn from_slice_unaligned(slice: &[T]) -> Self {
+        Self {
+            x: slice[0],
+            y: slice[1],
+            z: slice[2],
+            w: slice[3],
+        }
+    }
+
+    #[inline(always)]
+    fn write_to_slice_unaligned(self, slice: &mut [T]) {
+        slice[0] = self.x;
+        slice[1] = self.y;
+        slice[2] = self.z;
+        slice[3] = self.w;
+    }
+
+    #[inline(always)]
+    fn deref(&self) -> &XYZW<T> {
+        self
+    }
+
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut XYZW<T> {
+        self
+    }
+
+    #[inline(always)]
+    fn into_xy(self) -> XY<T> {
+        XY {
+            x: self.x,
+            y: self.y,
+        }
+    }
+
+    #[inline(always)]
+    fn into_xyz(self) -> XYZ<T> {
+        XYZ {
+            x: self.x,
+            y: self.y,
+            z: self.z,
+        }
+    }
+
+    #[inline(always)]
+    fn from_array(a: [T; 4]) -> Self {
+        Self {
+            x: a[0],
+            y: a[1],
+            z: a[2],
+            w: a[3],
+        }
+    }
+
+    #[inline(always)]
+    fn into_array(self) -> [T; 4] {
+        [self.x, self.y, self.z, self.w]
+    }
+
+    #[inline(always)]
+    fn from_tuple(t: (T, T, T, T)) -> Self {
+        Self::new(t.0, t.1, t.2, t.3)
+    }
+
+    #[inline(always)]
+    fn into_tuple(self) -> (T, T, T, T) {
+        (self.x, self.y, self.z, self.w)
+    }
 
     #[inline]
     fn min_element(self) -> T {
@@ -675,236 +908,14 @@ impl<T: Num> Vector<T> for XYZW<T> {
     fn max_element(self) -> T {
         self.x.max(self.y.max(self.z.min(self.w)))
     }
-}
-
-impl<T: Num> Vector2<T> for XY<T> {
-    #[inline]
-    fn new(x: T, y: T) -> Self {
-        Self { x, y }
-    }
 
     #[inline]
-    fn from_slice_unaligned(slice: &[T]) -> Self {
-        Self {
-            x: slice[0],
-            y: slice[1],
-        }
-    }
-
-    #[inline]
-    fn write_to_slice_unaligned(self, slice: &mut [T]) {
-        slice[0] = self.x;
-        slice[1] = self.y;
-    }
-
-    #[inline]
-    fn deref(&self) -> &XY<T> {
-        self
-    }
-
-    #[inline]
-    fn deref_mut(&mut self) -> &mut XY<T> {
-        self
-    }
-
-    #[inline]
-    fn into_xyz(self, z: T) -> XYZ<T> {
-        XYZ {
-            x: self.x,
-            y: self.y,
-            z,
-        }
-    }
-
-    #[inline]
-    fn into_xyzw(self, z: T, w: T) -> XYZW<T> {
-        XYZW {
-            x: self.x,
-            y: self.y,
-            z,
-            w,
-        }
-    }
-
-    #[inline]
-    fn from_array(a: [T; 2]) -> Self {
-        Self { x: a[0], y: a[1] }
-    }
-
-    #[inline]
-    fn into_array(self) -> [T; 2] {
-        [self.x, self.y]
-    }
-
-    #[inline]
-    fn from_tuple(t: (T, T)) -> Self {
-        Self::new(t.0, t.1)
-    }
-
-    #[inline]
-    fn into_tuple(self) -> (T, T) {
-        (self.x, self.y)
-    }
-}
-
-impl<T: Num> Vector3<T> for XYZ<T> {
-    #[inline]
-    fn new(x: T, y: T, z: T) -> Self {
-        Self { x, y, z }
-    }
-
-    #[inline]
-    fn from_slice_unaligned(slice: &[T]) -> Self {
-        Self {
-            x: slice[0],
-            y: slice[1],
-            z: slice[2],
-        }
-    }
-
-    #[inline]
-    fn write_to_slice_unaligned(self, slice: &mut [T]) {
-        slice[0] = self.x;
-        slice[1] = self.y;
-        slice[2] = self.z;
-    }
-
-    #[inline]
-    fn deref(&self) -> &XYZ<T> {
-        self
-    }
-
-    #[inline]
-    fn deref_mut(&mut self) -> &mut XYZ<T> {
-        self
-    }
-
-    #[inline]
-    fn into_xy(self) -> XY<T> {
-        XY {
-            x: self.x,
-            y: self.y,
-        }
-    }
-
-    #[inline]
-    fn into_xyzw(self, w: T) -> XYZW<T> {
-        XYZW {
-            x: self.x,
-            y: self.y,
-            z: self.z,
-            w,
-        }
-    }
-
-    #[inline]
-    fn from_array(a: [T; 3]) -> Self {
-        Self {
-            x: a[0],
-            y: a[1],
-            z: a[2],
-        }
-    }
-
-    #[inline]
-    fn into_array(self) -> [T; 3] {
-        [self.x, self.y, self.z]
-    }
-
-    #[inline]
-    fn from_tuple(t: (T, T, T)) -> Self {
-        Self::new(t.0, t.1, t.2)
-    }
-
-    #[inline]
-    fn into_tuple(self) -> (T, T, T) {
-        (self.x, self.y, self.z)
-    }
-}
-
-impl<T: Num> Vector4<T> for XYZW<T> {
-    #[inline]
-    fn new(x: T, y: T, z: T, w: T) -> Self {
-        Self { x, y, z, w }
-    }
-
-    #[inline]
-    fn from_slice_unaligned(slice: &[T]) -> Self {
-        Self {
-            x: slice[0],
-            y: slice[1],
-            z: slice[2],
-            w: slice[3],
-        }
-    }
-
-    #[inline]
-    fn write_to_slice_unaligned(self, slice: &mut [T]) {
-        slice[0] = self.x;
-        slice[1] = self.y;
-        slice[2] = self.z;
-        slice[3] = self.w;
-    }
-
-    #[inline]
-    fn deref(&self) -> &XYZW<T> {
-        self
-    }
-
-    #[inline]
-    fn deref_mut(&mut self) -> &mut XYZW<T> {
-        self
-    }
-
-    #[inline]
-    fn into_xy(self) -> XY<T> {
-        XY {
-            x: self.x,
-            y: self.y,
-        }
-    }
-
-    #[inline]
-    fn into_xyz(self) -> XYZ<T> {
-        XYZ {
-            x: self.x,
-            y: self.y,
-            z: self.z,
-        }
-    }
-
-    #[inline]
-    fn from_array(a: [T; 4]) -> Self {
-        Self {
-            x: a[0],
-            y: a[1],
-            z: a[2],
-            w: a[3],
-        }
-    }
-
-    #[inline]
-    fn into_array(self) -> [T; 4] {
-        [self.x, self.y, self.z, self.w]
-    }
-
-    #[inline]
-    fn from_tuple(t: (T, T, T, T)) -> Self {
-        Self::new(t.0, t.1, t.2, t.3)
-    }
-
-    #[inline]
-    fn into_tuple(self) -> (T, T, T, T) {
-        (self.x, self.y, self.z, self.w)
+    fn dot(self, other: Self) -> T {
+        (self.x * other.x) + (self.y * other.y) + (self.z * other.z) + (self.w * other.w)
     }
 }
 
 impl<T: Float> FloatVector<T> for XY<T> {
-    #[inline]
-    fn is_nan(self) -> Self::Mask {
-        self.map(|a| MaskConsts::MASK[a.is_nan() as usize])
-    }
-
     #[inline]
     fn abs(self) -> Self {
         self.map(Float::abs)
@@ -943,11 +954,6 @@ impl<T: Float> FloatVector<T> for XY<T> {
 
 impl<T: Float> FloatVector<T> for XYZ<T> {
     #[inline]
-    fn is_nan(self) -> Self::Mask {
-        self.map(|a| MaskConsts::MASK[a.is_nan() as usize])
-    }
-
-    #[inline]
     fn abs(self) -> Self {
         self.map(Float::abs)
     }
@@ -984,11 +990,6 @@ impl<T: Float> FloatVector<T> for XYZ<T> {
 }
 
 impl<T: Float> FloatVector<T> for XYZW<T> {
-    #[inline]
-    fn is_nan(self) -> Self::Mask {
-        self.map(|a| MaskConsts::MASK[a.is_nan() as usize])
-    }
-
     #[inline]
     fn abs(self) -> Self {
         self.map(Float::abs)
@@ -1027,8 +1028,18 @@ impl<T: Float> FloatVector<T> for XYZW<T> {
 
 impl<T: Float> FloatVector2<T> for XY<T> {
     #[inline]
-    fn dot(self, other: Self) -> T {
-        (self.x * other.x) + (self.y * other.y)
+    fn is_finite(self) -> bool {
+        self.x.is_finite() && self.y.is_finite()
+    }
+
+    #[inline]
+    fn is_nan(self) -> bool {
+        self.x.is_nan() || self.y.is_nan()
+    }
+
+    #[inline]
+    fn is_nan_mask(self) -> Self::Mask {
+        self.map(|a| MaskConsts::MASK[a.is_nan() as usize])
     }
 
     #[inline]
@@ -1047,8 +1058,8 @@ impl<T: Float> FloatVector2<T> for XY<T> {
 
 impl<T: Float> FloatVector3<T> for XYZ<T> {
     #[inline]
-    fn dot(self, other: Self) -> T {
-        (self.x * other.x) + (self.y * other.y) + (self.z * other.z)
+    fn is_nan_mask(self) -> Self::Mask {
+        self.map(|a| MaskConsts::MASK[a.is_nan() as usize])
     }
 
     #[inline]
@@ -1063,8 +1074,8 @@ impl<T: Float> FloatVector3<T> for XYZ<T> {
 
 impl<T: Float> FloatVector4<T> for XYZW<T> {
     #[inline]
-    fn dot(self, other: Self) -> T {
-        (self.x * other.x) + (self.y * other.y) + (self.z * other.z) + (self.w * other.w)
+    fn is_nan_mask(self) -> Self::Mask {
+        self.map(|a| MaskConsts::MASK[a.is_nan() as usize])
     }
 }
 
@@ -1165,7 +1176,7 @@ impl<T: Float> Quaternion<T> for XYZW<T> {
 }
 
 impl<T> From<XYZW<T>> for XYZ<T> {
-    #[inline]
+    #[inline(always)]
     fn from(v: XYZW<T>) -> Self {
         Self {
             x: v.x,
@@ -1176,14 +1187,14 @@ impl<T> From<XYZW<T>> for XYZ<T> {
 }
 
 impl<T> From<XYZW<T>> for XY<T> {
-    #[inline]
+    #[inline(always)]
     fn from(v: XYZW<T>) -> Self {
         Self { x: v.x, y: v.y }
     }
 }
 
 impl<T> From<XYZ<T>> for XY<T> {
-    #[inline]
+    #[inline(always)]
     fn from(v: XYZ<T>) -> Self {
         Self { x: v.x, y: v.y }
     }

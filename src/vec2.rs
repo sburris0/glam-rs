@@ -60,7 +60,7 @@ macro_rules! impl_vec2 {
             /// In other words, this computes `[x.is_nan(), y.is_nan()]`.
             #[inline]
             pub fn is_nan_mask(self) -> $mask {
-                $mask(self.0.is_nan())
+                $mask(self.0.is_nan_mask())
             }
 
             /// Returns a `$vec2` with elements representing the sign of `self`.
@@ -179,7 +179,7 @@ macro_rules! impl_vec2 {
             /// Computes the dot product of `self` and `other`.
             #[inline]
             pub fn dot(self, other: $vec2) -> $t {
-                FloatVector2::dot(self.0, other.0)
+                Vector2::dot(self.0, other.0)
             }
 
             /// Computes the length of `self`.

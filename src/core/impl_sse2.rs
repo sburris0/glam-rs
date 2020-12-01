@@ -17,12 +17,12 @@ impl MaskVectorConsts for __m128 {
 }
 
 impl MaskVector for __m128 {
-    #[inline]
+    #[inline(always)]
     fn bitand(self, other: Self) -> Self {
         unsafe { _mm_and_ps(self, other) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn bitor(self, other: Self) -> Self {
         unsafe { _mm_or_ps(self, other) }
     }
@@ -34,7 +34,7 @@ impl MaskVector for __m128 {
 }
 
 impl MaskVector3 for __m128 {
-    #[inline]
+    #[inline(always)]
     fn new(x: bool, y: bool, z: bool) -> Self {
         // A SSE2 mask can be any bit pattern but for the `MaskVector3` implementation of select we
         // expect either 0 or 0xff_ff_ff_ff. This should be a safe assumption as this type can only
@@ -50,24 +50,24 @@ impl MaskVector3 for __m128 {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     fn bitmask(self) -> u32 {
         unsafe { (_mm_movemask_ps(self) as u32) & 0x7 }
     }
 
-    #[inline]
+    #[inline(always)]
     fn any(self) -> bool {
         unsafe { (_mm_movemask_ps(self) & 0x7) != 0 }
     }
 
-    #[inline]
+    #[inline(always)]
     fn all(self) -> bool {
         unsafe { (_mm_movemask_ps(self) & 0x7) == 0x7 }
     }
 }
 
 impl MaskVector4 for __m128 {
-    #[inline]
+    #[inline(always)]
     fn new(x: bool, y: bool, z: bool, w: bool) -> Self {
         // A SSE2 mask can be any bit pattern but for the `Vec4Mask` implementation of select we
         // expect either 0 or 0xff_ff_ff_ff. This should be a safe assumption as this type can only
@@ -83,17 +83,17 @@ impl MaskVector4 for __m128 {
             )
         }
     }
-    #[inline]
+    #[inline(always)]
     fn bitmask(self) -> u32 {
         unsafe { _mm_movemask_ps(self) as u32 }
     }
 
-    #[inline]
+    #[inline(always)]
     fn any(self) -> bool {
         unsafe { _mm_movemask_ps(self) != 0 }
     }
 
-    #[inline]
+    #[inline(always)]
     fn all(self) -> bool {
         unsafe { _mm_movemask_ps(self) == 0xf }
     }
@@ -140,124 +140,104 @@ impl Vector4Consts for __m128 {
 impl Vector<f32> for __m128 {
     type Mask = __m128;
 
-    #[inline]
+    #[inline(always)]
     fn splat(s: f32) -> Self {
         unsafe { _mm_set_ps1(s) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn select(mask: Self::Mask, if_true: Self, if_false: Self) -> Self {
         unsafe { _mm_or_ps(_mm_andnot_ps(mask, if_false), _mm_and_ps(if_true, mask)) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn cmpeq(self, other: Self) -> Self::Mask {
         unsafe { _mm_cmpeq_ps(self, other) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn cmpne(self, other: Self) -> Self::Mask {
         unsafe { _mm_cmpneq_ps(self, other) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn cmpge(self, other: Self) -> Self::Mask {
         unsafe { _mm_cmpge_ps(self, other) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn cmpgt(self, other: Self) -> Self::Mask {
         unsafe { _mm_cmpgt_ps(self, other) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn cmple(self, other: Self) -> Self::Mask {
         unsafe { _mm_cmple_ps(self, other) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn cmplt(self, other: Self) -> Self::Mask {
         unsafe { _mm_cmplt_ps(self, other) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn add(self, other: Self) -> Self {
         unsafe { _mm_add_ps(self, other) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn div(self, other: Self) -> Self {
         unsafe { _mm_div_ps(self, other) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn mul(self, other: Self) -> Self {
         unsafe { _mm_mul_ps(self, other) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn mul_add(self, a: Self, b: Self) -> Self {
         unsafe { _mm_add_ps(_mm_mul_ps(self, a), b) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn sub(self, other: Self) -> Self {
         unsafe { _mm_sub_ps(self, other) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn mul_scalar(self, other: f32) -> Self {
         unsafe { _mm_mul_ps(self, _mm_set_ps1(other)) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn div_scalar(self, other: f32) -> Self {
         unsafe { _mm_div_ps(self, _mm_set_ps1(other)) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn min(self, other: Self) -> Self {
         unsafe { _mm_min_ps(self, other) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn max(self, other: Self) -> Self {
         unsafe { _mm_max_ps(self, other) }
-    }
-
-    #[inline]
-    fn min_element(self) -> f32 {
-        unsafe {
-            let v = self;
-            let v = _mm_min_ps(v, _mm_shuffle_ps(v, v, 0b00_00_11_10));
-            let v = _mm_min_ps(v, _mm_shuffle_ps(v, v, 0b00_00_00_01));
-            _mm_cvtss_f32(v)
-        }
-    }
-
-    #[inline]
-    fn max_element(self) -> f32 {
-        unsafe {
-            let v = self;
-            let v = _mm_max_ps(v, _mm_shuffle_ps(v, v, 0b00_00_11_10));
-            let v = _mm_max_ps(v, _mm_shuffle_ps(v, v, 0b00_00_00_01));
-            _mm_cvtss_f32(v)
-        }
     }
 }
 
 impl Vector3<f32> for __m128 {
-    #[inline]
+    #[inline(always)]
     fn new(x: f32, y: f32, z: f32) -> Self {
         unsafe { _mm_set_ps(0.0, z, y, x) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_slice_unaligned(slice: &[f32]) -> Self {
         Vector3::new(slice[0], slice[1], slice[2])
     }
 
-    #[inline]
+    #[inline(always)]
     fn write_to_slice_unaligned(self, slice: &mut [f32]) {
         let xyz = Vector3::deref(&self);
         slice[0] = xyz.x;
@@ -265,12 +245,12 @@ impl Vector3<f32> for __m128 {
         slice[2] = xyz.z;
     }
 
-    #[inline]
+    #[inline(always)]
     fn deref(&self) -> &XYZ<f32> {
         unsafe { &*(self as *const Self as *const XYZ<f32>) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn deref_mut(&mut self) -> &mut XYZ<f32> {
         unsafe { &mut *(self as *mut Self as *mut XYZ<f32>) }
     }
@@ -294,7 +274,7 @@ impl Vector3<f32> for __m128 {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_array(a: [f32; 3]) -> Self {
         unsafe { _mm_loadu_ps(a.as_ptr()) }
     }
@@ -308,7 +288,7 @@ impl Vector3<f32> for __m128 {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_tuple(t: (f32, f32, f32)) -> Self {
         unsafe { _mm_set_ps(0.0, t.2, t.1, t.0) }
     }
@@ -321,21 +301,54 @@ impl Vector3<f32> for __m128 {
             out.assume_init().0
         }
     }
+
+    #[inline]
+    fn min_element(self) -> f32 {
+        unsafe {
+            let v = self;
+            let v = _mm_min_ps(v, _mm_shuffle_ps(v, v, 0b01_01_10_10));
+            let v = _mm_min_ps(v, _mm_shuffle_ps(v, v, 0b00_00_00_01));
+            _mm_cvtss_f32(v)
+        }
+    }
+
+    #[inline]
+    fn max_element(self) -> f32 {
+        unsafe {
+            let v = self;
+            let v = _mm_max_ps(v, _mm_shuffle_ps(v, v, 0b00_00_10_10));
+            let v = _mm_max_ps(v, _mm_shuffle_ps(v, v, 0b00_00_00_01));
+            _mm_cvtss_f32(v)
+        }
+    }
+
+    #[inline]
+    fn dot(self, other: Self) -> f32 {
+        unsafe { _mm_cvtss_f32(dot3_in_x(self, other)) }
+    }
+
+    #[inline]
+    fn dot_into_vec(self, other: Self) -> Self {
+        unsafe {
+            let dot_in_x = dot3_in_x(self, other);
+            _mm_shuffle_ps(dot_in_x, dot_in_x, 0b00_00_00_00)
+        }
+    }
 }
 
 impl Vector4<f32> for __m128 {
-    #[inline]
+    #[inline(always)]
     fn new(x: f32, y: f32, z: f32, w: f32) -> Self {
         unsafe { _mm_set_ps(w, z, y, x) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_slice_unaligned(slice: &[f32]) -> Self {
         assert!(slice.len() >= 4);
         unsafe { _mm_loadu_ps(slice.as_ptr()) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn write_to_slice_unaligned(self, slice: &mut [f32]) {
         unsafe {
             assert!(slice.len() >= 4);
@@ -343,12 +356,12 @@ impl Vector4<f32> for __m128 {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     fn deref(&self) -> &XYZW<f32> {
         unsafe { &*(self as *const Self as *const XYZW<f32>) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn deref_mut(&mut self) -> &mut XYZW<f32> {
         unsafe { &mut *(self as *mut Self as *mut XYZW<f32>) }
     }
@@ -371,7 +384,7 @@ impl Vector4<f32> for __m128 {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_array(a: [f32; 4]) -> Self {
         unsafe { _mm_loadu_ps(a.as_ptr()) }
     }
@@ -385,7 +398,7 @@ impl Vector4<f32> for __m128 {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_tuple(t: (f32, f32, f32, f32)) -> Self {
         unsafe { _mm_set_ps(t.3, t.2, t.1, t.0) }
     }
@@ -398,14 +411,42 @@ impl Vector4<f32> for __m128 {
             out.assume_init().0
         }
     }
+
+    #[inline]
+    fn min_element(self) -> f32 {
+        unsafe {
+            let v = self;
+            let v = _mm_min_ps(v, _mm_shuffle_ps(v, v, 0b00_00_11_10));
+            let v = _mm_min_ps(v, _mm_shuffle_ps(v, v, 0b00_00_00_01));
+            _mm_cvtss_f32(v)
+        }
+    }
+
+    #[inline]
+    fn max_element(self) -> f32 {
+        unsafe {
+            let v = self;
+            let v = _mm_max_ps(v, _mm_shuffle_ps(v, v, 0b00_00_11_10));
+            let v = _mm_max_ps(v, _mm_shuffle_ps(v, v, 0b00_00_00_01));
+            _mm_cvtss_f32(v)
+        }
+    }
+
+    #[inline]
+    fn dot(self, other: Self) -> f32 {
+        unsafe { _mm_cvtss_f32(dot4_in_x(self, other)) }
+    }
+
+    #[inline]
+    fn dot_into_vec(self, other: Self) -> Self {
+        unsafe {
+            let dot_in_x = dot4_in_x(self, other);
+            _mm_shuffle_ps(dot_in_x, dot_in_x, 0b00_00_00_00)
+        }
+    }
 }
 
 impl FloatVector<f32> for __m128 {
-    #[inline]
-    fn is_nan(self) -> Self::Mask {
-        unsafe { _mm_cmpunord_ps(self, self) }
-    }
-
     #[inline]
     fn abs(self) -> Self {
         unsafe { _mm_and_ps(self, _mm_castsi128_ps(_mm_set1_epi32(0x7f_ff_ff_ff))) }
@@ -435,7 +476,7 @@ impl FloatVector<f32> for __m128 {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     fn recip(self) -> Self {
         unsafe { _mm_div_ps(Self::ONE, self) }
     }
@@ -445,27 +486,20 @@ impl FloatVector<f32> for __m128 {
         const NEG_ONE: __m128 = const_m128!([-1.0; 4]);
         let mask = self.cmpge(Self::ZERO);
         let result = Self::select(mask, Self::ONE, NEG_ONE);
-        Self::select(self.is_nan(), self, result)
+        let mask = unsafe { _mm_cmpunord_ps(self, self) };
+        Self::select(mask, self, result)
     }
 
-    #[inline]
+    #[inline(always)]
     fn neg(self) -> Self {
         unsafe { _mm_sub_ps(Self::ZERO, self) }
     }
 }
 
 impl FloatVector3<f32> for __m128 {
-    #[inline]
-    fn dot(self, other: Self) -> f32 {
-        unsafe { _mm_cvtss_f32(dot3_in_x(self, other)) }
-    }
-
-    #[inline]
-    fn dot_into_vec(self, other: Self) -> Self {
-        unsafe {
-            let dot_in_x = dot3_in_x(self, other);
-            _mm_shuffle_ps(dot_in_x, dot_in_x, 0b00_00_00_00)
-        }
+    #[inline(always)]
+    fn is_nan_mask(self) -> Self::Mask {
+        unsafe { _mm_cmpunord_ps(self, self) }
     }
 
     #[inline]
@@ -512,17 +546,9 @@ impl FloatVector3<f32> for __m128 {
 }
 
 impl FloatVector4<f32> for __m128 {
-    #[inline]
-    fn dot(self, other: Self) -> f32 {
-        unsafe { _mm_cvtss_f32(dot4_in_x(self, other)) }
-    }
-
-    #[inline]
-    fn dot_into_vec(self, other: Self) -> Self {
-        unsafe {
-            let dot_in_x = dot4_in_x(self, other);
-            _mm_shuffle_ps(dot_in_x, dot_in_x, 0b00_00_00_00)
-        }
+    #[inline(always)]
+    fn is_nan_mask(self) -> Self::Mask {
+        unsafe { _mm_cmpunord_ps(self, self) }
     }
 
     #[inline]
@@ -545,13 +571,14 @@ impl FloatVector4<f32> for __m128 {
     #[inline]
     fn normalize(self) -> Self {
         unsafe {
-            let dot = FloatVector4::dot_into_vec(self, self);
+            let dot = Vector4::dot_into_vec(self, self);
             _mm_div_ps(self, _mm_sqrt_ps(dot))
         }
     }
 }
 
 impl Quaternion<f32> for __m128 {
+    #[inline(always)]
     fn conjugate(self) -> Self {
         const SIGN: __m128 = const_m128!([-0.0, -0.0, -0.0, 0.0]);
         unsafe { _mm_xor_ps(self, SIGN) }
@@ -565,7 +592,7 @@ impl Quaternion<f32> for __m128 {
             const NEG_ZERO: __m128 = const_m128!([-0.0; 4]);
             let start = self;
             let end = end;
-            let dot = FloatVector4::dot_into_vec(start, end);
+            let dot = Vector4::dot_into_vec(start, end);
             // Calculate the bias, if the dot product is positive or zero, there is no bias
             // but if it is negative, we want to flip the 'end' rotation XYZW components
             let bias = _mm_and_ps(dot, NEG_ZERO);
@@ -586,7 +613,7 @@ impl Quaternion<f32> for __m128 {
 
         const DOT_THRESHOLD: f32 = 0.9995;
 
-        let dot = FloatVector4::dot(self, end);
+        let dot = Vector4::dot(self, end);
 
         if dot > DOT_THRESHOLD {
             // assumes lerp returns a normalized quaternion

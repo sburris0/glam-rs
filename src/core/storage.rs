@@ -1,10 +1,8 @@
 #[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
 #[repr(C)]
-pub struct XYZW<T> {
+pub struct XY<T> {
     pub x: T,
     pub y: T,
-    pub z: T,
-    pub w: T,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
@@ -17,9 +15,18 @@ pub struct XYZ<T> {
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
 #[repr(C)]
-pub struct XY<T> {
+pub struct XYZW<T> {
     pub x: T,
     pub y: T,
+    pub z: T,
+    pub w: T,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
+#[repr(C)]
+pub struct XYAxes<T> {
+    pub x_axis: XY<T>,
+    pub y_axis: XY<T>,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
