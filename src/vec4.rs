@@ -1,7 +1,7 @@
 #[cfg(feature = "num-traits")]
 use num_traits::Float;
 
-use crate::core::vector_traits::*;
+use crate::core::traits::vector::*;
 
 use crate::{DVec2, DVec3, DVec4Mask};
 use crate::{Vec2, Vec3, Vec3A, Vec4Mask, XYZW};

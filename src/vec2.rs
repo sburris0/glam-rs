@@ -1,7 +1,7 @@
 #[cfg(feature = "num-traits")]
 use num_traits::Float;
 
-use crate::core::vector_traits::*;
+use crate::core::traits::vector::*;
 use crate::{DVec2Mask, DVec3};
 use crate::{Vec2Mask, Vec3, XY};
 #[cfg(not(target_arch = "spirv"))]

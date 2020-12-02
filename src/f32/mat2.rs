@@ -1,8 +1,24 @@
-use crate::core::matrix_traits::*;
+use crate::core::traits::matrix::{FloatMatrix2x2, Matrix2x2, MatrixConsts};
 use crate::Vec2;
 #[cfg(not(target_arch = "spirv"))]
 use core::fmt;
-use core::ops::{Add, Deref, DerefMut, Mul, Sub};
+use core::{
+    cmp::Ordering,
+    ops::{Add, Deref, DerefMut, Mul, Sub},
+};
+
+// #[cfg(all(
+//     target_arch = "x86",
+//     target_feature = "sse2",
+//     not(feature = "scalar-math")
+// ))]
+// use core::arch::x86::*;
+// #[cfg(all(
+//     target_arch = "x86_64",
+//     target_feature = "sse2",
+//     not(feature = "scalar-math")
+// ))]
+// use core::arch::x86_64::*;
 
 #[cfg(feature = "std")]
 use std::iter::{Product, Sum};
@@ -26,13 +42,13 @@ pub struct Mat2 {
 }
 
 // #[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
-type InnerF32 = crate::core::storage::XYAxes<f32>;
-
-// #[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
 // type InnerF32 = __m128;
 
+// #[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
+type InnerF32 = crate::core::storage::XYAxes<f32>;
+
 #[cfg(not(doc))]
-#[derive(Clone, Copy, PartialEq, PartialOrd)]
+#[derive(Clone, Copy)]
 #[repr(C)]
 pub struct Mat2(pub(crate) InnerF32);
 
@@ -43,10 +59,17 @@ impl Default for Mat2 {
     }
 }
 
-#[cfg(not(target_arch = "spirv"))]
-impl fmt::Display for Mat2 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "[{}, {}]", self.x_axis, self.y_axis)
+impl PartialEq for Mat2 {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.x_axis.eq(&other.x_axis) && self.y_axis.eq(&other.y_axis)
+    }
+}
+
+impl PartialOrd for Mat2 {
+    #[inline]
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.as_ref().partial_cmp(other.as_ref())
     }
 }
 
@@ -315,6 +338,12 @@ impl Mul<f32> for Mat2 {
     #[inline]
     fn mul(self, other: f32) -> Self {
         Self(self.0.mul_scalar(other))
+    }
+}
+
+impl fmt::Display for Mat2 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "[{}, {}]", self.x_axis, self.y_axis)
     }
 }
 

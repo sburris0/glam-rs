@@ -1,4 +1,7 @@
-use super::{scalar_traits::Float, storage::XYZ, vector_traits::*};
+use crate::core::{
+    storage::XYZ,
+    traits::{scalar::Float, vector::*},
+};
 
 pub trait Quaternion<T: Float>: FloatVector4<T> {
     fn from_axis_angle(axis: XYZ<T>, angle: T) -> Self {

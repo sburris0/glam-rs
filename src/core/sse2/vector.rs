@@ -3,13 +3,11 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-use super::{
-    quaternion_traits::Quaternion,
-    scalar_traits::MaskConsts,
-    storage::{Align16, XY, XYZ, XYZW},
-    vector_traits::*,
-};
 use crate::const_m128;
+use crate::core::{
+    storage::{Align16, XY, XYZ, XYZW},
+    traits::{quaternion::Quaternion, scalar::*, vector::*},
+};
 use core::mem::MaybeUninit;
 
 impl MaskVectorConsts for __m128 {
@@ -606,8 +604,6 @@ impl Quaternion<f32> for __m128 {
 
     fn slerp(self, end: Self, s: f32) -> Self {
         // http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/
-        use super::scalar_traits::Float;
-
         glam_assert!(FloatVector4::is_normalized(self));
         glam_assert!(FloatVector4::is_normalized(end));
 

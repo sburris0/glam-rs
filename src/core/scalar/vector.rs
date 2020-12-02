@@ -1,8 +1,6 @@
-use super::{
-    quaternion_traits::Quaternion,
-    scalar_traits::{Float, MaskConsts, Num, NumConsts},
+use crate::core::{
     storage::{XY, XYZ, XYZW},
-    vector_traits::*,
+    traits::{quaternion::Quaternion, scalar::*, vector::*},
 };
 
 impl<T> XY<T> {

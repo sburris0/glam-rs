@@ -1,5 +1,5 @@
-use super::scalar_traits::Float;
-use super::storage::{XY, XYZ, XYZW};
+use super::scalar::Float;
+use crate::core::storage::{XY, XYZ, XYZW};
 
 pub trait MaskVectorConsts: Sized {
     const FALSE: Self;

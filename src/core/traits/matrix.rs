@@ -1,4 +1,4 @@
-use super::{scalar_traits::Float, storage::XY};
+use crate::core::{storage::XY, traits::scalar::Float};
 
 pub trait MatrixConsts {
     const IDENTITY: Self;
@@ -32,10 +32,12 @@ pub trait FloatMatrix2x2<T: Float>: Matrix2x2<T> {
 
 mod scalar {
     use crate::core::{
-        matrix_traits::{FloatMatrix2x2, Matrix, Matrix2x2, MatrixConsts},
-        scalar_traits::{Float, Num},
         storage::{XYAxes, XY},
-        vector_traits::*,
+        traits::{
+            matrix::{FloatMatrix2x2, Matrix, Matrix2x2, MatrixConsts},
+            scalar::{Float, Num},
+            vector::{FloatVector2, Vector, Vector2, Vector2Consts},
+        },
     };
 
     impl<T: Num> MatrixConsts for XYAxes<T> {

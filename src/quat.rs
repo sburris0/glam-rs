@@ -1,7 +1,10 @@
 #[cfg(feature = "num-traits")]
 use num_traits::Float;
 
-use crate::core::{quaternion_traits::Quaternion, vector_traits::*};
+use crate::core::traits::{
+    quaternion::Quaternion,
+    vector::{FloatVector4, MaskVector4, Vector, Vector4, Vector4Consts, VectorConsts},
+};
 use crate::{DVec3, DVec4};
 use crate::{Mat3, Mat4, Vec3, Vec3A, Vec4, Vec4Swizzles};
 
