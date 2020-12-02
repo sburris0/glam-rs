@@ -7,18 +7,18 @@ use core::{
     ops::{Add, Deref, DerefMut, Mul, Sub},
 };
 
-// #[cfg(all(
-//     target_arch = "x86",
-//     target_feature = "sse2",
-//     not(feature = "scalar-math")
-// ))]
-// use core::arch::x86::*;
-// #[cfg(all(
-//     target_arch = "x86_64",
-//     target_feature = "sse2",
-//     not(feature = "scalar-math")
-// ))]
-// use core::arch::x86_64::*;
+#[cfg(all(
+    target_arch = "x86",
+    target_feature = "sse2",
+    not(feature = "scalar-math")
+))]
+use core::arch::x86::*;
+#[cfg(all(
+    target_arch = "x86_64",
+    target_feature = "sse2",
+    not(feature = "scalar-math")
+))]
+use core::arch::x86_64::*;
 
 #[cfg(feature = "std")]
 use std::iter::{Product, Sum};
@@ -41,10 +41,10 @@ pub struct Mat2 {
     pub y_axis: Vec2,
 }
 
-// #[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
-// type InnerF32 = __m128;
+#[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
+type InnerF32 = __m128;
 
-// #[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
+#[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
 type InnerF32 = crate::core::storage::XYAxes<f32>;
 
 #[cfg(not(doc))]
