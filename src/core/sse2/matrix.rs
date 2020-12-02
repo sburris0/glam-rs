@@ -3,13 +3,15 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
+use core::mem::MaybeUninit;
+
 use crate::{
     const_m128,
     core::{
-        storage::{XYAxes, XY},
+        storage::{Align16, XYAxes, XY},
         traits::{
             matrix::{FloatMatrix2x2, Matrix, Matrix2x2, MatrixConsts},
-            vector::{FloatVector4, Vector2},
+            vector::FloatVector4,
         },
     },
 };
@@ -75,12 +77,16 @@ impl Matrix2x2<f32> for __m128 {
 
     #[inline]
     fn mul_vector(&self, other: XY<f32>) -> XY<f32> {
-        // TODO: SSE2
-        let m = self.deref();
-        Vector2::new(
-            (m.x_axis.x * other.x) + (m.y_axis.x * other.y),
-            (m.x_axis.y * other.x) + (m.y_axis.y * other.y),
-        )
+        unsafe {
+            let abcd = *self;
+            let xxyy = _mm_set_ps(other.y, other.y, other.x, other.x);
+            let axbxcydy = _mm_mul_ps(abcd, xxyy);
+            let cydyaxbx = _mm_shuffle_ps(axbxcydy, axbxcydy, 0b01_00_11_10);
+            let result = _mm_add_ps(axbxcydy, cydyaxbx);
+            let mut out: MaybeUninit<Align16<XY<f32>>> = MaybeUninit::uninit();
+            _mm_store_ps(out.as_mut_ptr() as *mut f32, result);
+            out.assume_init().0
+        }
     }
 
     #[inline]
