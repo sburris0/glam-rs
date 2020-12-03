@@ -4,6 +4,7 @@ use crate::core::{
 };
 
 pub trait MatrixConsts {
+    const ZERO: Self;
     const IDENTITY: Self;
 }
 

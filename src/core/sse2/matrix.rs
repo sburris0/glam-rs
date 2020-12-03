@@ -17,6 +17,7 @@ use crate::{
 };
 
 impl MatrixConsts for __m128 {
+    const ZERO: __m128 = const_m128!([0.0, 0.0, 0.0, 0.0]);
     const IDENTITY: __m128 = const_m128!([1.0, 0.0, 0.0, 1.0]);
 }
 

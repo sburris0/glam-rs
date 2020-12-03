@@ -423,6 +423,27 @@ impl<'de> Deserialize<'de> for Mat4 {
 }
 
 #[test]
+fn test_mat2_serde() {
+    let a = Mat2::from_cols(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
+    let serialized = serde_json::to_string(&a).unwrap();
+    assert_eq!(serialized, "[1.0,2.0,3.0,4.0]");
+    let deserialized = serde_json::from_str(&serialized).unwrap();
+    assert_eq!(a, deserialized);
+    let deserialized = serde_json::from_str::<Mat2>("[]");
+    assert!(deserialized.is_err());
+    let deserialized = serde_json::from_str::<Mat2>("[1.0]");
+    assert!(deserialized.is_err());
+    let deserialized = serde_json::from_str::<Mat2>("[1.0,2.0]");
+    assert!(deserialized.is_err());
+    let deserialized = serde_json::from_str::<Mat2>("[1.0,2.0,3.0]");
+    assert!(deserialized.is_err());
+    let deserialized = serde_json::from_str::<Mat2>("[1.0,2.0,3.0,4.0,5.0]");
+    assert!(deserialized.is_err());
+    let deserialized = serde_json::from_str::<Mat2>("[[1.0,2.0],[3.0,4.0]]");
+    assert!(deserialized.is_err());
+}
+
+#[test]
 fn test_quat_serde() {
     let a = Quat::from_xyzw(1.0, 2.0, 3.0, 4.0);
     let serialized = serde_json::to_string(&a).unwrap();

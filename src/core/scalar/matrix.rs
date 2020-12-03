@@ -3,11 +3,15 @@ use crate::core::{
     traits::{
         matrix::{FloatMatrix2x2, Matrix, Matrix2x2, MatrixConsts},
         scalar::{Float, Num},
-        vector::{FloatVector2, Vector, Vector2, Vector2Consts},
+        vector::{FloatVector2, Vector, Vector2, Vector2Consts, VectorConsts},
     },
 };
 
 impl<T: Num> MatrixConsts for XYAxes<T> {
+    const ZERO: Self = Self {
+        x_axis: XY::ZERO,
+        y_axis: XY::ZERO,
+    };
     const IDENTITY: Self = Self {
         x_axis: XY::UNIT_X,
         y_axis: XY::UNIT_Y,
