@@ -270,6 +270,7 @@ impl Mat2 {
     }
 }
 
+#[cfg(not(target_arch = "spirv"))]
 impl fmt::Debug for Mat2 {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("Mat2")
@@ -341,6 +342,7 @@ impl Mul<f32> for Mat2 {
     }
 }
 
+#[cfg(not(target_arch = "spirv"))]
 impl fmt::Display for Mat2 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "[{}, {}]", self.x_axis, self.y_axis)

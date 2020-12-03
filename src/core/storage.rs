@@ -1,12 +1,14 @@
-#[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
-#[repr(C)]
+#[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
+#[cfg_attr(target_arch = "spirv", repr(simd))]
+#[cfg_attr(not(target_arch = "spirv"), repr(C))]
 pub struct XY<T> {
     pub x: T,
     pub y: T,
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
-#[repr(C)]
+#[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
+#[cfg_attr(target_arch = "spirv", repr(simd))]
+#[cfg_attr(not(target_arch = "spirv"), repr(C))]
 pub struct XYZ<T> {
     pub x: T,
     pub y: T,
@@ -14,7 +16,8 @@ pub struct XYZ<T> {
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
-#[repr(C)]
+#[cfg_attr(target_arch = "spirv", repr(simd))]
+#[cfg_attr(not(target_arch = "spirv"), repr(C))]
 pub struct XYZW<T> {
     pub x: T,
     pub y: T,
@@ -22,14 +25,14 @@ pub struct XYZW<T> {
     pub w: T,
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
 #[repr(C)]
 pub struct XYAxes<T> {
     pub x_axis: XY<T>,
     pub y_axis: XY<T>,
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
 #[repr(align(16))]
 pub(crate) struct Align16<T>(pub T);
 

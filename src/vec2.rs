@@ -396,6 +396,7 @@ macro_rules! impl_vec2 {
             }
         }
 
+        #[cfg(not(target_arch = "spirv"))]
         impl fmt::Display for $vec2 {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 write!(f, "[{}, {}]", self.x, self.y)
@@ -530,6 +531,7 @@ macro_rules! impl_vec2 {
             }
         }
 
+        #[cfg(not(target_arch = "spirv"))]
         impl fmt::Debug for $vec2 {
             fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
                 fmt.debug_tuple(stringify!($vec2))
@@ -624,7 +626,7 @@ type XYF32 = XY<f32>;
 #[cfg(not(doc))]
 #[derive(Clone, Copy)]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
-#[cfg_attr(target_arch = "spirv", repr(simd))]
+#[cfg_attr(target_arch = "spirv", repr(transparent))]
 pub struct Vec2(pub(crate) XYF32);
 
 #[cfg(doc)]
@@ -642,7 +644,8 @@ type XYF64 = XY<f64>;
 
 #[cfg(not(doc))]
 #[derive(Clone, Copy)]
-#[repr(C)]
+#[cfg_attr(not(target_arch = "spirv"), repr(C))]
+#[cfg_attr(target_arch = "spirv", repr(transparent))]
 pub struct DVec2(pub(crate) XYF64);
 
 #[cfg(doc)]

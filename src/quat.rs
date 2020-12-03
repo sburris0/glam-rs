@@ -249,6 +249,7 @@ macro_rules! impl_quat {
             }
         }
 
+        #[cfg(not(target_arch = "spirv"))]
         impl fmt::Debug for $quat {
             fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
                 fmt.debug_tuple(stringify!($quat))
@@ -260,6 +261,7 @@ macro_rules! impl_quat {
             }
         }
 
+        #[cfg(not(target_arch = "spirv"))]
         impl fmt::Display for $quat {
             fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
                 write!(fmt, "[{}, {}, {}, {}]", self.x, self.y, self.z, self.w)
@@ -476,7 +478,8 @@ type InnerF32 = crate::XYZW<f32>;
 ///
 /// This type is 16 byte aligned.
 #[derive(Clone, Copy)]
-#[repr(C)]
+#[cfg_attr(target_arch = "spirv", repr(transparent))]
+#[cfg_attr(not(target_arch = "spirv"), repr(C))]
 pub struct Quat(pub(crate) InnerF32);
 
 impl_quat!(quat, Quat, Vec3, Vec4, f32, InnerF32);

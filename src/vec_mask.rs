@@ -150,6 +150,7 @@ macro_rules! impl_vec2mask {
 
         impl_vecnmask_traits!($vec2mask, $inner);
 
+        #[cfg(not(target_arch = "spirv"))]
         impl fmt::Debug for $vec2mask {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 let arr = self.as_ref();
@@ -157,6 +158,7 @@ macro_rules! impl_vec2mask {
             }
         }
 
+        #[cfg(not(target_arch = "spirv"))]
         impl fmt::Display for $vec2mask {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 let arr = self.as_ref();
@@ -200,6 +202,7 @@ macro_rules! impl_vec3mask {
 
         impl_vecnmask_traits!($vec3mask, $inner);
 
+        #[cfg(not(target_arch = "spirv"))]
         impl fmt::Debug for $vec3mask {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 let arr = self.as_ref();
@@ -214,6 +217,7 @@ macro_rules! impl_vec3mask {
             }
         }
 
+        #[cfg(not(target_arch = "spirv"))]
         impl fmt::Display for $vec3mask {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 let arr = self.as_ref();
@@ -257,6 +261,7 @@ macro_rules! impl_vec4mask {
 
         impl_vecnmask_traits!($vec4mask, $inner);
 
+        #[cfg(not(target_arch = "spirv"))]
         impl fmt::Debug for $vec4mask {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 let arr = self.as_ref();
@@ -272,6 +277,7 @@ macro_rules! impl_vec4mask {
             }
         }
 
+        #[cfg(not(target_arch = "spirv"))]
         impl fmt::Display for $vec4mask {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 let arr = self.as_ref();

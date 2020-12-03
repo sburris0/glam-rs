@@ -434,6 +434,7 @@ macro_rules! impl_vec4 {
             }
         }
 
+        #[cfg(not(target_arch = "spirv"))]
         impl fmt::Debug for $vec4 {
             fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
                 let a = self.as_ref();
@@ -446,6 +447,7 @@ macro_rules! impl_vec4 {
             }
         }
 
+        #[cfg(not(target_arch = "spirv"))]
         impl fmt::Display for $vec4 {
             fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
                 let a = self.as_ref();
@@ -691,7 +693,7 @@ type XYZWF32 = XYZW<f32>;
 #[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
 #[derive(Clone, Copy)]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
-#[cfg_attr(target_arch = "spirv", repr(simd))]
+#[cfg_attr(target_arch = "spirv", repr(transparent))]
 pub struct Vec4(pub(crate) XYZWF32);
 
 #[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
@@ -731,7 +733,8 @@ type XYZWF64 = XYZW<f64>;
 
 #[cfg(not(doc))]
 #[derive(Clone, Copy)]
-#[repr(C)]
+#[cfg_attr(not(target_arch = "spirv"), repr(C))]
+#[cfg_attr(target_arch = "spirv", repr(transparent))]
 pub struct DVec4(pub(crate) XYZWF64);
 
 impl_vec4!(dvec4, DVec2, DVec3, DVec4, f64, DVec4Mask, XYZWF64);

@@ -447,6 +447,7 @@ macro_rules! impl_vec3 {
             }
         }
 
+        #[cfg(not(target_arch = "spirv"))]
         impl fmt::Debug for $vec3 {
             fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
                 let a = self.as_ref();
@@ -458,6 +459,7 @@ macro_rules! impl_vec3 {
             }
         }
 
+        #[cfg(not(target_arch = "spirv"))]
         impl fmt::Display for $vec3 {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 write!(f, "[{}, {}, {}]", self.x, self.y, self.z)
@@ -594,6 +596,13 @@ macro_rules! impl_vec3 {
             }
         }
 
+        impl From<($vec2, $t)> for $vec3 {
+            #[inline]
+            fn from((v, z): ($vec2, $t)) -> Self {
+                Self::new(v.x, v.y, z)
+            }
+        }
+
         impl From<($t, $t, $t)> for $vec3 {
             #[inline]
             fn from(t: ($t, $t, $t)) -> Self {
@@ -671,7 +680,8 @@ type XYZF32 = XYZ<f32>;
 
 #[cfg(not(doc))]
 #[derive(Clone, Copy)]
-#[repr(C)]
+#[cfg_attr(not(target_arch = "spirv"), repr(C))]
+#[cfg_attr(target_arch = "spirv", repr(transparent))]
 pub struct Vec3(pub(crate) XYZF32);
 
 /// A 3-dimensional vector without SIMD support.
@@ -695,7 +705,9 @@ pub struct Vec3A(pub(crate) __m128);
 #[cfg(not(doc))]
 #[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
 #[derive(Clone, Copy)]
-#[repr(align(16), C)]
+#[cfg_attr(not(target_arch = "spirv"), repr(C))]
+#[cfg_attr(target_arch = "spirv", repr(transparent))]
+#[repr(align(16))]
 pub struct Vec3A(pub(crate) XYZF32);
 
 /// A 3-dimensional vector with SIMD support.
@@ -736,7 +748,8 @@ type XYZF64 = XYZ<f64>;
 
 #[cfg(not(doc))]
 #[derive(Clone, Copy)]
-#[repr(C)]
+#[cfg_attr(not(target_arch = "spirv"), repr(C))]
+#[cfg_attr(target_arch = "spirv", repr(transparent))]
 pub struct DVec3(pub(crate) XYZF64);
 
 /// A 3-dimensional vector.
