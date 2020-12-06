@@ -1,11 +1,11 @@
-use super::scalar::Float;
+use super::scalar::FloatEx;
 use crate::core::storage::{XY, XYZ, XYZW};
 
-pub trait MaskVectorConsts: Sized {
+pub trait MaskVectorConst: Sized {
     const FALSE: Self;
 }
 
-pub trait MaskVector: MaskVectorConsts {
+pub trait MaskVector: MaskVectorConst {
     fn bitand(self, other: Self) -> Self;
     fn bitor(self, other: Self) -> Self;
     fn not(self) -> Self;
@@ -32,23 +32,23 @@ pub trait MaskVector4: MaskVector {
     fn all(self) -> bool;
 }
 
-pub trait VectorConsts {
+pub trait VectorConst {
     const ZERO: Self;
     const ONE: Self;
 }
 
-pub trait Vector2Consts: VectorConsts {
+pub trait Vector2Const: VectorConst {
     const UNIT_X: Self;
     const UNIT_Y: Self;
 }
 
-pub trait Vector3Consts: VectorConsts {
+pub trait Vector3Const: VectorConst {
     const UNIT_X: Self;
     const UNIT_Y: Self;
     const UNIT_Z: Self;
 }
 
-pub trait Vector4Consts: VectorConsts {
+pub trait Vector4Const: VectorConst {
     const UNIT_X: Self;
     const UNIT_Y: Self;
     const UNIT_Z: Self;
@@ -158,7 +158,7 @@ pub trait Vector4<T>: Vector<T> {
     }
 }
 
-pub trait FloatVector<T: Float>: Vector<T> {
+pub trait FloatVector<T: FloatEx>: Vector<T> {
     fn abs(self) -> Self;
     fn ceil(self) -> Self;
     fn floor(self) -> Self;
@@ -168,7 +168,7 @@ pub trait FloatVector<T: Float>: Vector<T> {
     fn signum(self) -> Self;
 }
 
-pub trait FloatVector2<T: Float>: FloatVector<T> + Vector2<T> {
+pub trait FloatVector2<T: FloatEx>: FloatVector<T> + Vector2<T> {
     fn is_finite(self) -> bool;
     fn is_nan(self) -> bool;
     fn is_nan_mask(self) -> Self::Mask;
@@ -228,7 +228,7 @@ pub trait FloatVector2<T: Float>: FloatVector<T> + Vector2<T> {
     }
 }
 
-pub trait FloatVector3<T: Float>: FloatVector<T> + Vector3<T> {
+pub trait FloatVector3<T: FloatEx>: FloatVector<T> + Vector3<T> {
     fn is_nan_mask(self) -> Self::Mask;
 
     fn cross(self, other: Self) -> Self;
@@ -278,7 +278,7 @@ pub trait FloatVector3<T: Float>: FloatVector<T> + Vector3<T> {
     }
 }
 
-pub trait FloatVector4<T: Float>: FloatVector<T> + Vector4<T> {
+pub trait FloatVector4<T: FloatEx>: FloatVector<T> + Vector4<T> {
     fn is_nan_mask(self) -> Self::Mask;
 
     #[inline]

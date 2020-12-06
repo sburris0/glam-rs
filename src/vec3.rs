@@ -1,12 +1,12 @@
-#[cfg(feature = "num-traits")]
 use num_traits::Float;
 
 use crate::core::traits::vector::*;
 use crate::XYZ;
 use crate::{DVec2, DVec3Mask, DVec4};
 use crate::{Vec2, Vec3AMask, Vec3Mask, Vec4};
-use core::{cmp::Ordering, f32};
-use core::{fmt, ops::*};
+#[cfg(not(target_arch = "spirv"))]
+use core::fmt;
+use core::{cmp::Ordering, f32, ops::*};
 
 #[cfg(all(
     target_arch = "x86",
@@ -29,7 +29,7 @@ macro_rules! impl_vec3 {
         impl Default for $vec3 {
             #[inline]
             fn default() -> Self {
-                Self(VectorConsts::ZERO)
+                Self(VectorConst::ZERO)
             }
         }
 
@@ -90,19 +90,19 @@ macro_rules! impl_vec3 {
             /// Creates a `$vec3` with values `[x: 1.0, y: 0.0, z: 0.0]`.
             #[inline]
             pub const fn unit_x() -> Self {
-                Self(Vector3Consts::UNIT_X)
+                Self(Vector3Const::UNIT_X)
             }
 
             /// Creates a `$vec3` with values `[x: 0.0, y: 1.0, z: 0.0]`.
             #[inline]
             pub const fn unit_y() -> Self {
-                Self(Vector3Consts::UNIT_Y)
+                Self(Vector3Const::UNIT_Y)
             }
 
             /// Creates a `$vec3` with values `[x: 0.0, y: 0.0, z: 1.0]`.
             #[inline]
             pub const fn unit_z() -> Self {
-                Self(Vector3Consts::UNIT_Z)
+                Self(Vector3Const::UNIT_Z)
             }
 
             /// Creates a `$vec3` with all elements set to `v`.
@@ -705,9 +705,8 @@ pub struct Vec3A(pub(crate) __m128);
 #[cfg(not(doc))]
 #[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
 #[derive(Clone, Copy)]
-#[cfg_attr(not(target_arch = "spirv"), repr(C))]
 #[cfg_attr(target_arch = "spirv", repr(transparent))]
-#[repr(align(16))]
+#[cfg_attr(not(target_arch = "spirv"), repr(align(16), C))]
 pub struct Vec3A(pub(crate) XYZF32);
 
 /// A 3-dimensional vector with SIMD support.

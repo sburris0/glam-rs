@@ -117,15 +117,15 @@ impl<T> XYZW<T> {
     }
 }
 
-impl MaskVectorConsts for XY<u32> {
+impl MaskVectorConst for XY<u32> {
     const FALSE: Self = Self { x: 0, y: 0 };
 }
 
-impl MaskVectorConsts for XYZ<u32> {
+impl MaskVectorConst for XYZ<u32> {
     const FALSE: Self = Self { x: 0, y: 0, z: 0 };
 }
 
-impl MaskVectorConsts for XYZW<u32> {
+impl MaskVectorConst for XYZW<u32> {
     const FALSE: Self = Self {
         x: 0,
         y: 0,
@@ -189,8 +189,8 @@ impl MaskVector2 for XY<u32> {
     #[inline(always)]
     fn new(x: bool, y: bool) -> Self {
         Self {
-            x: MaskConsts::MASK[x as usize],
-            y: MaskConsts::MASK[y as usize],
+            x: MaskConst::MASK[x as usize],
+            y: MaskConst::MASK[y as usize],
         }
     }
 
@@ -217,9 +217,9 @@ impl MaskVector3 for XYZ<u32> {
         // we expect either 0 or 0xff_ff_ff_ff. This should be a safe assumption as this type
         // can only be created via this function or by `Vec3` methods.
         Self {
-            x: MaskConsts::MASK[x as usize],
-            y: MaskConsts::MASK[y as usize],
-            z: MaskConsts::MASK[z as usize],
+            x: MaskConst::MASK[x as usize],
+            y: MaskConst::MASK[y as usize],
+            z: MaskConst::MASK[z as usize],
         }
     }
 
@@ -246,10 +246,10 @@ impl MaskVector4 for XYZW<u32> {
         // we expect either 0 or 0xff_ff_ff_ff. This should be a safe assumption as this type
         // can only be created via this function or by `Vec4` methods.
         Self {
-            x: MaskConsts::MASK[x as usize],
-            y: MaskConsts::MASK[y as usize],
-            z: MaskConsts::MASK[z as usize],
-            w: MaskConsts::MASK[w as usize],
+            x: MaskConst::MASK[x as usize],
+            y: MaskConst::MASK[y as usize],
+            z: MaskConst::MASK[z as usize],
+            w: MaskConst::MASK[w as usize],
         }
     }
 
@@ -269,100 +269,100 @@ impl MaskVector4 for XYZW<u32> {
     }
 }
 
-impl<T: Num> VectorConsts for XY<T> {
+impl<T: NumEx> VectorConst for XY<T> {
     const ZERO: Self = Self {
-        x: <T as NumConsts>::ZERO,
-        y: <T as NumConsts>::ZERO,
+        x: <T as NumConstEx>::ZERO,
+        y: <T as NumConstEx>::ZERO,
     };
     const ONE: Self = Self {
-        x: <T as NumConsts>::ONE,
-        y: <T as NumConsts>::ONE,
+        x: <T as NumConstEx>::ONE,
+        y: <T as NumConstEx>::ONE,
     };
 }
 
-impl<T: Num> Vector2Consts for XY<T> {
+impl<T: NumEx> Vector2Const for XY<T> {
     const UNIT_X: Self = Self {
-        x: <T as NumConsts>::ONE,
-        y: <T as NumConsts>::ZERO,
+        x: <T as NumConstEx>::ONE,
+        y: <T as NumConstEx>::ZERO,
     };
     const UNIT_Y: Self = Self {
-        x: <T as NumConsts>::ZERO,
-        y: <T as NumConsts>::ONE,
+        x: <T as NumConstEx>::ZERO,
+        y: <T as NumConstEx>::ONE,
     };
 }
 
-impl<T: Num> VectorConsts for XYZ<T> {
+impl<T: NumEx> VectorConst for XYZ<T> {
     const ZERO: Self = Self {
-        x: <T as NumConsts>::ZERO,
-        y: <T as NumConsts>::ZERO,
-        z: <T as NumConsts>::ZERO,
+        x: <T as NumConstEx>::ZERO,
+        y: <T as NumConstEx>::ZERO,
+        z: <T as NumConstEx>::ZERO,
     };
     const ONE: Self = Self {
-        x: <T as NumConsts>::ONE,
-        y: <T as NumConsts>::ONE,
-        z: <T as NumConsts>::ONE,
+        x: <T as NumConstEx>::ONE,
+        y: <T as NumConstEx>::ONE,
+        z: <T as NumConstEx>::ONE,
     };
 }
-impl<T: Num> Vector3Consts for XYZ<T> {
+impl<T: NumEx> Vector3Const for XYZ<T> {
     const UNIT_X: Self = Self {
-        x: <T as NumConsts>::ONE,
-        y: <T as NumConsts>::ZERO,
-        z: <T as NumConsts>::ZERO,
+        x: <T as NumConstEx>::ONE,
+        y: <T as NumConstEx>::ZERO,
+        z: <T as NumConstEx>::ZERO,
     };
     const UNIT_Y: Self = Self {
-        x: <T as NumConsts>::ZERO,
-        y: <T as NumConsts>::ONE,
-        z: <T as NumConsts>::ZERO,
+        x: <T as NumConstEx>::ZERO,
+        y: <T as NumConstEx>::ONE,
+        z: <T as NumConstEx>::ZERO,
     };
     const UNIT_Z: Self = Self {
-        x: <T as NumConsts>::ZERO,
-        y: <T as NumConsts>::ZERO,
-        z: <T as NumConsts>::ONE,
+        x: <T as NumConstEx>::ZERO,
+        y: <T as NumConstEx>::ZERO,
+        z: <T as NumConstEx>::ONE,
     };
 }
 
-impl<T: Num> VectorConsts for XYZW<T> {
+impl<T: NumEx> VectorConst for XYZW<T> {
     const ZERO: Self = Self {
-        x: <T as NumConsts>::ZERO,
-        y: <T as NumConsts>::ZERO,
-        z: <T as NumConsts>::ZERO,
-        w: <T as NumConsts>::ZERO,
+        x: <T as NumConstEx>::ZERO,
+        y: <T as NumConstEx>::ZERO,
+        z: <T as NumConstEx>::ZERO,
+        w: <T as NumConstEx>::ZERO,
     };
     const ONE: Self = Self {
-        x: <T as NumConsts>::ONE,
-        y: <T as NumConsts>::ONE,
-        z: <T as NumConsts>::ONE,
-        w: <T as NumConsts>::ONE,
+        x: <T as NumConstEx>::ONE,
+        y: <T as NumConstEx>::ONE,
+        z: <T as NumConstEx>::ONE,
+        w: <T as NumConstEx>::ONE,
     };
 }
-impl<T: Num> Vector4Consts for XYZW<T> {
+impl<T: NumEx> Vector4Const for XYZW<T> {
     const UNIT_X: Self = Self {
-        x: <T as NumConsts>::ONE,
-        y: <T as NumConsts>::ZERO,
-        z: <T as NumConsts>::ZERO,
-        w: <T as NumConsts>::ZERO,
+        x: <T as NumConstEx>::ONE,
+        y: <T as NumConstEx>::ZERO,
+        z: <T as NumConstEx>::ZERO,
+        w: <T as NumConstEx>::ZERO,
     };
     const UNIT_Y: Self = Self {
-        x: <T as NumConsts>::ZERO,
-        y: <T as NumConsts>::ONE,
-        z: <T as NumConsts>::ZERO,
-        w: <T as NumConsts>::ZERO,
+        x: <T as NumConstEx>::ZERO,
+        y: <T as NumConstEx>::ONE,
+        z: <T as NumConstEx>::ZERO,
+        w: <T as NumConstEx>::ZERO,
     };
     const UNIT_Z: Self = Self {
-        x: <T as NumConsts>::ZERO,
-        y: <T as NumConsts>::ZERO,
-        z: <T as NumConsts>::ONE,
-        w: <T as NumConsts>::ZERO,
+        x: <T as NumConstEx>::ZERO,
+        y: <T as NumConstEx>::ZERO,
+        z: <T as NumConstEx>::ONE,
+        w: <T as NumConstEx>::ZERO,
     };
     const UNIT_W: Self = Self {
-        x: <T as NumConsts>::ZERO,
-        y: <T as NumConsts>::ZERO,
-        z: <T as NumConsts>::ZERO,
-        w: <T as NumConsts>::ONE,
+        x: <T as NumConstEx>::ZERO,
+        y: <T as NumConstEx>::ZERO,
+        z: <T as NumConstEx>::ZERO,
+        w: <T as NumConstEx>::ONE,
     };
 }
 
-impl<T: Num> Vector<T> for XY<T> {
+impl<T: NumEx> Vector<T> for XY<T> {
     type Mask = XY<u32>;
 
     #[inline]
@@ -380,32 +380,32 @@ impl<T: Num> Vector<T> for XY<T> {
 
     #[inline]
     fn cmpeq(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.eq(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.eq(&b) as usize])
     }
 
     #[inline]
     fn cmpne(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.ne(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.ne(&b) as usize])
     }
 
     #[inline]
     fn cmpge(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.ge(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.ge(&b) as usize])
     }
 
     #[inline]
     fn cmpgt(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.gt(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.gt(&b) as usize])
     }
 
     #[inline]
     fn cmple(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.le(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.le(&b) as usize])
     }
 
     #[inline]
     fn cmplt(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.lt(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.lt(&b) as usize])
     }
 
     #[inline]
@@ -454,7 +454,7 @@ impl<T: Num> Vector<T> for XY<T> {
     }
 }
 
-impl<T: Num> Vector<T> for XYZ<T> {
+impl<T: NumEx> Vector<T> for XYZ<T> {
     type Mask = XYZ<u32>;
 
     #[inline]
@@ -473,32 +473,32 @@ impl<T: Num> Vector<T> for XYZ<T> {
 
     #[inline]
     fn cmpeq(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.eq(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.eq(&b) as usize])
     }
 
     #[inline]
     fn cmpne(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.ne(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.ne(&b) as usize])
     }
 
     #[inline]
     fn cmpge(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.ge(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.ge(&b) as usize])
     }
 
     #[inline]
     fn cmpgt(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.gt(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.gt(&b) as usize])
     }
 
     #[inline]
     fn cmple(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.le(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.le(&b) as usize])
     }
 
     #[inline]
     fn cmplt(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.lt(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.lt(&b) as usize])
     }
 
     #[inline]
@@ -547,7 +547,7 @@ impl<T: Num> Vector<T> for XYZ<T> {
     }
 }
 
-impl<T: Num> Vector<T> for XYZW<T> {
+impl<T: NumEx> Vector<T> for XYZW<T> {
     type Mask = XYZW<u32>;
 
     #[inline]
@@ -572,32 +572,32 @@ impl<T: Num> Vector<T> for XYZW<T> {
 
     #[inline]
     fn cmpeq(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.eq(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.eq(&b) as usize])
     }
 
     #[inline]
     fn cmpne(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.ne(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.ne(&b) as usize])
     }
 
     #[inline]
     fn cmpge(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.ge(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.ge(&b) as usize])
     }
 
     #[inline]
     fn cmpgt(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.gt(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.gt(&b) as usize])
     }
 
     #[inline]
     fn cmple(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.le(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.le(&b) as usize])
     }
 
     #[inline]
     fn cmplt(self, other: Self) -> Self::Mask {
-        self.map2(other, |a, b| MaskConsts::MASK[a.lt(&b) as usize])
+        self.map2(other, |a, b| MaskConst::MASK[a.lt(&b) as usize])
     }
 
     #[inline]
@@ -646,7 +646,7 @@ impl<T: Num> Vector<T> for XYZW<T> {
     }
 }
 
-impl<T: Num> Vector2<T> for XY<T> {
+impl<T: NumEx> Vector2<T> for XY<T> {
     #[inline(always)]
     fn new(x: T, y: T) -> Self {
         Self { x, y }
@@ -731,7 +731,7 @@ impl<T: Num> Vector2<T> for XY<T> {
     }
 }
 
-impl<T: Num> Vector3<T> for XYZ<T> {
+impl<T: NumEx> Vector3<T> for XYZ<T> {
     #[inline(always)]
     fn new(x: T, y: T, z: T) -> Self {
         Self { x, y, z }
@@ -821,7 +821,7 @@ impl<T: Num> Vector3<T> for XYZ<T> {
     }
 }
 
-impl<T: Num> Vector4<T> for XYZW<T> {
+impl<T: NumEx> Vector4<T> for XYZW<T> {
     #[inline(always)]
     fn new(x: T, y: T, z: T, w: T) -> Self {
         Self { x, y, z, w }
@@ -913,7 +913,7 @@ impl<T: Num> Vector4<T> for XYZW<T> {
     }
 }
 
-impl<T: Float> FloatVector<T> for XY<T> {
+impl<T: FloatEx> FloatVector<T> for XY<T> {
     #[inline]
     fn abs(self) -> Self {
         self.map(Float::abs)
@@ -950,7 +950,7 @@ impl<T: Float> FloatVector<T> for XY<T> {
     }
 }
 
-impl<T: Float> FloatVector<T> for XYZ<T> {
+impl<T: FloatEx> FloatVector<T> for XYZ<T> {
     #[inline]
     fn abs(self) -> Self {
         self.map(Float::abs)
@@ -987,7 +987,7 @@ impl<T: Float> FloatVector<T> for XYZ<T> {
     }
 }
 
-impl<T: Float> FloatVector<T> for XYZW<T> {
+impl<T: FloatEx> FloatVector<T> for XYZW<T> {
     #[inline]
     fn abs(self) -> Self {
         self.map(Float::abs)
@@ -1024,7 +1024,7 @@ impl<T: Float> FloatVector<T> for XYZW<T> {
     }
 }
 
-impl<T: Float> FloatVector2<T> for XY<T> {
+impl<T: FloatEx> FloatVector2<T> for XY<T> {
     #[inline]
     fn is_finite(self) -> bool {
         self.x.is_finite() && self.y.is_finite()
@@ -1037,7 +1037,7 @@ impl<T: Float> FloatVector2<T> for XY<T> {
 
     #[inline]
     fn is_nan_mask(self) -> Self::Mask {
-        self.map(|a| MaskConsts::MASK[a.is_nan() as usize])
+        self.map(|a| MaskConst::MASK[a.is_nan() as usize])
     }
 
     #[inline]
@@ -1054,10 +1054,10 @@ impl<T: Float> FloatVector2<T> for XY<T> {
     }
 }
 
-impl<T: Float> FloatVector3<T> for XYZ<T> {
+impl<T: FloatEx> FloatVector3<T> for XYZ<T> {
     #[inline]
     fn is_nan_mask(self) -> Self::Mask {
-        self.map(|a| MaskConsts::MASK[a.is_nan() as usize])
+        self.map(|a| MaskConst::MASK[a.is_nan() as usize])
     }
 
     #[inline]
@@ -1070,14 +1070,14 @@ impl<T: Float> FloatVector3<T> for XYZ<T> {
     }
 }
 
-impl<T: Float> FloatVector4<T> for XYZW<T> {
+impl<T: FloatEx> FloatVector4<T> for XYZW<T> {
     #[inline]
     fn is_nan_mask(self) -> Self::Mask {
-        self.map(|a| MaskConsts::MASK[a.is_nan() as usize])
+        self.map(|a| MaskConst::MASK[a.is_nan() as usize])
     }
 }
 
-impl<T: Float> Quaternion<T> for XYZW<T> {
+impl<T: FloatEx> Quaternion<T> for XYZW<T> {
     // fn from_axis_angle(axis: XYZ<T>, angle: T) -> Self {
     // }
 

@@ -1,16 +1,16 @@
 use crate::core::{
     storage::{XYAxes, XY},
-    traits::scalar::{Float, Num},
+    traits::scalar::{FloatEx, NumEx},
 };
 
-pub trait MatrixConsts {
+pub trait MatrixConst {
     const ZERO: Self;
     const IDENTITY: Self;
 }
 
-pub trait Matrix<T: Num>: Sized + Copy + Clone {}
+pub trait Matrix<T: NumEx>: Sized + Copy + Clone {}
 
-pub trait Matrix2x2<T: Num>: Matrix<T> {
+pub trait Matrix2x2<T: NumEx>: Matrix<T> {
     fn new(m00: T, m01: T, m10: T, m11: T) -> Self;
 
     fn deref(&self) -> &XYAxes<T>;
@@ -57,7 +57,7 @@ pub trait Matrix2x2<T: Num>: Matrix<T> {
     fn sub_matrix(&self, other: &Self) -> Self;
 }
 
-pub trait FloatMatrix2x2<T: Float>: Matrix2x2<T> {
+pub trait FloatMatrix2x2<T: FloatEx>: Matrix2x2<T> {
     fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool;
 
     #[inline]

@@ -1,8 +1,9 @@
 use crate::core::traits::vector::{
-    MaskVector, MaskVector2, MaskVector3, MaskVector4, MaskVectorConsts,
+    MaskVector, MaskVector2, MaskVector3, MaskVector4, MaskVectorConst,
 };
-use core::{cmp::Ordering, hash};
-use core::{fmt, ops::*};
+#[cfg(not(target_arch = "spirv"))]
+use core::fmt;
+use core::{cmp::Ordering, hash, ops::*};
 
 #[cfg(all(
     target_arch = "x86",

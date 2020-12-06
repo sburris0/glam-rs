@@ -1,13 +1,13 @@
 use crate::core::{
     storage::{XYAxes, XY},
     traits::{
-        matrix::{FloatMatrix2x2, Matrix, Matrix2x2, MatrixConsts},
-        scalar::{Float, Num},
-        vector::{FloatVector2, Vector, Vector2, Vector2Consts, VectorConsts},
+        matrix::{FloatMatrix2x2, Matrix, Matrix2x2, MatrixConst},
+        scalar::{FloatEx, NumEx},
+        vector::{FloatVector2, Vector, Vector2, Vector2Const, VectorConst},
     },
 };
 
-impl<T: Num> MatrixConsts for XYAxes<T> {
+impl<T: NumEx> MatrixConst for XYAxes<T> {
     const ZERO: Self = Self {
         x_axis: XY::ZERO,
         y_axis: XY::ZERO,
@@ -18,9 +18,9 @@ impl<T: Num> MatrixConsts for XYAxes<T> {
     };
 }
 
-impl<T: Num> Matrix<T> for XYAxes<T> {}
+impl<T: NumEx> Matrix<T> for XYAxes<T> {}
 
-impl<T: Num> Matrix2x2<T> for XYAxes<T> {
+impl<T: NumEx> Matrix2x2<T> for XYAxes<T> {
     #[inline(always)]
     fn new(m00: T, m01: T, m10: T, m11: T) -> Self {
         Self {
@@ -78,7 +78,7 @@ impl<T: Num> Matrix2x2<T> for XYAxes<T> {
     }
 }
 
-impl<T: Float> FloatMatrix2x2<T> for XYAxes<T> {
+impl<T: FloatEx> FloatMatrix2x2<T> for XYAxes<T> {
     fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool {
         self.x_axis.abs_diff_eq(other.x_axis, max_abs_diff)
             && self.y_axis.abs_diff_eq(other.y_axis, max_abs_diff)

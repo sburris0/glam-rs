@@ -1,4 +1,3 @@
-#[cfg(feature = "num-traits")]
 use num_traits::Float;
 
 use crate::core::traits::vector::*;
@@ -92,25 +91,25 @@ macro_rules! impl_vec4 {
             /// Creates a `$vec4` with values `[x: 1.0, y: 0.0, z: 0.0, w: 0.0]`.
             #[inline]
             pub const fn unit_x() -> Self {
-                Self(Vector4Consts::UNIT_X)
+                Self(Vector4Const::UNIT_X)
             }
 
             /// Creates a `$vec4` with values `[x: 0.0, y: 1.0, z: 0.0, w: 0.0]`.
             #[inline]
             pub const fn unit_y() -> Self {
-                Self(Vector4Consts::UNIT_Y)
+                Self(Vector4Const::UNIT_Y)
             }
 
             /// Creates a `$vec4` with values `[x: 0.0, y: 0.0, z: 1.0, w: 0.0]`.
             #[inline]
             pub const fn unit_z() -> Self {
-                Self(Vector4Consts::UNIT_Z)
+                Self(Vector4Const::UNIT_Z)
             }
 
             /// Creates a `$vec4` with values `[x: 0.0, y: 0.0, z: 0.0, w: 1.0]`.
             #[inline]
             pub const fn unit_w() -> Self {
-                Self(Vector4Consts::UNIT_W)
+                Self(Vector4Const::UNIT_W)
             }
 
             /// Creates a `$vec4` with all elements set to `v`.

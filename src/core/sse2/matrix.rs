@@ -10,13 +10,13 @@ use crate::{
     core::{
         storage::{Align16, XYAxes, XY},
         traits::{
-            matrix::{FloatMatrix2x2, Matrix, Matrix2x2, MatrixConsts},
+            matrix::{FloatMatrix2x2, Matrix, Matrix2x2, MatrixConst},
             vector::FloatVector4,
         },
     },
 };
 
-impl MatrixConsts for __m128 {
+impl MatrixConst for __m128 {
     const ZERO: __m128 = const_m128!([0.0, 0.0, 0.0, 0.0]);
     const IDENTITY: __m128 = const_m128!([1.0, 0.0, 0.0, 1.0]);
 }

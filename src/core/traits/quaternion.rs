@@ -1,9 +1,9 @@
 use crate::core::{
     storage::XYZ,
-    traits::{scalar::Float, vector::*},
+    traits::{scalar::{Float, FloatEx}, vector::*},
 };
 
-pub trait Quaternion<T: Float>: FloatVector4<T> {
+pub trait Quaternion<T: FloatEx>: FloatVector4<T> {
     fn from_axis_angle(axis: XYZ<T>, angle: T) -> Self {
         glam_assert!(FloatVector3::is_normalized(axis));
         let (s, c) = (angle * T::HALF).sin_cos();
@@ -113,12 +113,12 @@ pub trait Quaternion<T: Float>: FloatVector4<T> {
         // const EPSILON_SQUARED: f32 = EPSILON * EPSILON;
         let (x, y, z, w) = Vector4::into_tuple(self);
         let angle = w.acos_approx() * T::TWO;
-        let scale_sq = (T::ONE - w * w).max(T::ZERO);
+        let scale_sq = Float::max(T::ONE - w * w, T::ZERO);
         // TODO: constants for epslions?
         if scale_sq >= T::from_f32(1.0e-8 * 1.0e-8) {
             (XYZ { x, y, z }.mul_scalar(scale_sq.sqrt().recip()), angle)
         } else {
-            (Vector3Consts::UNIT_X, angle)
+            (Vector3Const::UNIT_X, angle)
         }
     }
 

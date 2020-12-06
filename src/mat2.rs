@@ -1,4 +1,4 @@
-use crate::core::traits::matrix::{FloatMatrix2x2, Matrix2x2, MatrixConsts};
+use crate::core::traits::matrix::{FloatMatrix2x2, Matrix2x2, MatrixConst};
 use crate::{DVec2, Vec2};
 #[cfg(not(target_arch = "spirv"))]
 use core::fmt;

@@ -1,4 +1,3 @@
-#[cfg(feature = "num-traits")]
 use num_traits::Float;
 
 use super::scalar_sin_cos;

@@ -1,4 +1,3 @@
-#[cfg(feature = "num-traits")]
 use num_traits::Float;
 
 use crate::core::traits::vector::*;

@@ -10,7 +10,7 @@ use crate::core::{
 };
 use core::mem::MaybeUninit;
 
-impl MaskVectorConsts for __m128 {
+impl MaskVectorConst for __m128 {
     const FALSE: __m128 = const_m128!([0.0; 4]);
 }
 
@@ -41,9 +41,9 @@ impl MaskVector3 for __m128 {
         unsafe {
             _mm_set_ps(
                 0.0,
-                f32::from_bits(MaskConsts::MASK[z as usize]),
-                f32::from_bits(MaskConsts::MASK[y as usize]),
-                f32::from_bits(MaskConsts::MASK[x as usize]),
+                f32::from_bits(MaskConst::MASK[z as usize]),
+                f32::from_bits(MaskConst::MASK[y as usize]),
+                f32::from_bits(MaskConst::MASK[x as usize]),
             )
         }
     }
@@ -117,18 +117,18 @@ unsafe fn dot4_in_x(lhs: __m128, rhs: __m128) -> __m128 {
     _mm_add_ps(x2z2_y2w2_0_0, y2w2_0_0_0)
 }
 
-impl VectorConsts for __m128 {
+impl VectorConst for __m128 {
     const ZERO: __m128 = const_m128!([0.0; 4]);
     const ONE: __m128 = const_m128!([1.0; 4]);
 }
 
-impl Vector3Consts for __m128 {
+impl Vector3Const for __m128 {
     const UNIT_X: __m128 = const_m128!([1.0, 0.0, 0.0, 0.0]);
     const UNIT_Y: __m128 = const_m128!([0.0, 1.0, 0.0, 0.0]);
     const UNIT_Z: __m128 = const_m128!([0.0, 0.0, 1.0, 0.0]);
 }
 
-impl Vector4Consts for __m128 {
+impl Vector4Const for __m128 {
     const UNIT_X: __m128 = const_m128!([1.0, 0.0, 0.0, 0.0]);
     const UNIT_Y: __m128 = const_m128!([0.0, 1.0, 0.0, 0.0]);
     const UNIT_Z: __m128 = const_m128!([0.0, 0.0, 1.0, 0.0]);
