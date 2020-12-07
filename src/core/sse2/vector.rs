@@ -332,6 +332,23 @@ impl Vector3<f32> for __m128 {
             _mm_shuffle_ps(dot_in_x, dot_in_x, 0b00_00_00_00)
         }
     }
+
+    #[inline]
+    fn cross(self, other: Self) -> Self {
+        unsafe {
+            // x  <-  a.y*b.z - a.z*b.y
+            // y  <-  a.z*b.x - a.x*b.z
+            // z  <-  a.x*b.y - a.y*b.x
+            // We can save a shuffle by grouping it in this wacky order:
+            // (self.zxy() * other - self * other.zxy()).zxy()
+            let lhszxy = _mm_shuffle_ps(self, self, 0b01_01_00_10);
+            let rhszxy = _mm_shuffle_ps(other, other, 0b01_01_00_10);
+            let lhszxy_rhs = _mm_mul_ps(lhszxy, other);
+            let rhszxy_lhs = _mm_mul_ps(rhszxy, self);
+            let sub = _mm_sub_ps(lhszxy_rhs, rhszxy_lhs);
+            _mm_shuffle_ps(sub, sub, 0b01_01_00_10)
+        }
+    }
 }
 
 impl Vector4<f32> for __m128 {
@@ -501,23 +518,6 @@ impl FloatVector3<f32> for __m128 {
     }
 
     #[inline]
-    fn cross(self, other: Self) -> Self {
-        unsafe {
-            // x  <-  a.y*b.z - a.z*b.y
-            // y  <-  a.z*b.x - a.x*b.z
-            // z  <-  a.x*b.y - a.y*b.x
-            // We can save a shuffle by grouping it in this wacky order:
-            // (self.zxy() * other - self * other.zxy()).zxy()
-            let lhszxy = _mm_shuffle_ps(self, self, 0b01_01_00_10);
-            let rhszxy = _mm_shuffle_ps(other, other, 0b01_01_00_10);
-            let lhszxy_rhs = _mm_mul_ps(lhszxy, other);
-            let rhszxy_lhs = _mm_mul_ps(rhszxy, self);
-            let sub = _mm_sub_ps(lhszxy_rhs, rhszxy_lhs);
-            _mm_shuffle_ps(sub, sub, 0b01_01_00_10)
-        }
-    }
-
-    #[inline]
     fn length(self) -> f32 {
         unsafe {
             let dot = dot3_in_x(self, self);
@@ -537,7 +537,7 @@ impl FloatVector3<f32> for __m128 {
     #[inline]
     fn normalize(self) -> Self {
         unsafe {
-            let dot = FloatVector3::dot_into_vec(self, self);
+            let dot = Vector3::dot_into_vec(self, self);
             _mm_div_ps(self, _mm_sqrt_ps(dot))
         }
     }
@@ -681,10 +681,10 @@ impl Quaternion<f32> for __m128 {
             let other = _mm_set_ps(0.0, other.z, other.y, other.x);
             let w = _mm_shuffle_ps(self, self, 0b11_11_11_11);
             let b = self;
-            let b2 = FloatVector3::dot_into_vec(b, b);
+            let b2 = Vector3::dot_into_vec(b, b);
             other
                 .mul(w.mul(w).sub(b2))
-                .add(b.mul(FloatVector3::dot_into_vec(other, b).mul(TWO)))
+                .add(b.mul(Vector3::dot_into_vec(other, b).mul(TWO)))
                 .add(b.cross(other).mul(w.mul(TWO)))
                 .into()
         }

@@ -8,7 +8,7 @@ use core::mem::MaybeUninit;
 use crate::{
     const_m128,
     core::{
-        storage::{Align16, XYAxes, XY},
+        storage::{Align16, XYx2, XY},
         traits::{
             matrix::{FloatMatrix2x2, Matrix, Matrix2x2, MatrixConst},
             vector::FloatVector4,
@@ -30,13 +30,13 @@ impl Matrix2x2<f32> for __m128 {
     }
 
     #[inline(always)]
-    fn deref(&self) -> &XYAxes<f32> {
-        unsafe { &*(self as *const Self as *const XYAxes<f32>) }
+    fn deref(&self) -> &XYx2<f32> {
+        unsafe { &*(self as *const Self as *const XYx2<f32>) }
     }
 
     #[inline(always)]
-    fn deref_mut(&mut self) -> &mut XYAxes<f32> {
-        unsafe { &mut *(self as *mut Self as *mut XYAxes<f32>) }
+    fn deref_mut(&mut self) -> &mut XYx2<f32> {
+        unsafe { &mut *(self as *mut Self as *mut XYx2<f32>) }
     }
 
     // #[inline(always)]

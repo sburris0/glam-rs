@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use num_traits::Float;
 
 use super::scalar_sin_cos;

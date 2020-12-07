@@ -132,6 +132,8 @@ pub trait Vector3<T>: Vector<T> {
     fn dot_into_vec(self, other: Self) -> Self {
         Self::splat(self.dot(other))
     }
+
+    fn cross(self, other: Self) -> Self;
 }
 
 pub trait Vector4<T>: Vector<T> {
@@ -230,13 +232,6 @@ pub trait FloatVector2<T: FloatEx>: FloatVector<T> + Vector2<T> {
 
 pub trait FloatVector3<T: FloatEx>: FloatVector<T> + Vector3<T> {
     fn is_nan_mask(self) -> Self::Mask;
-
-    fn cross(self, other: Self) -> Self;
-
-    #[inline]
-    fn dot_into_vec(self, other: Self) -> Self {
-        Self::splat(self.dot(other))
-    }
 
     #[inline]
     fn length(self) -> T {

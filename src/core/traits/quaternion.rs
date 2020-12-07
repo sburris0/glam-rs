@@ -1,6 +1,9 @@
 use crate::core::{
     storage::XYZ,
-    traits::{scalar::{Float, FloatEx}, vector::*},
+    traits::{
+        scalar::{Float, FloatEx},
+        vector::*,
+    },
 };
 
 pub trait Quaternion<T: FloatEx>: FloatVector4<T> {

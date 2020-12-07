@@ -96,6 +96,7 @@ macro_rules! const_mat2 {
     };
 }
 
+/*
 /// Creates a `Mat3` from three column vectors that can be used to initialize a constant value.
 ///
 /// ```
@@ -121,6 +122,7 @@ macro_rules! const_mat3 {
         }
     };
 }
+*/
 
 /// Creates a `Mat4` from four column vectors that can be used to initialize a constant value.
 ///

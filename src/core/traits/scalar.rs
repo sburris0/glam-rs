@@ -1,4 +1,4 @@
-pub use num_traits::{Num, Float};
+pub use num_traits::{Float, Num};
 
 // use crate::XYZ;
 // use crate::XYZW;

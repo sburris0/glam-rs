@@ -224,7 +224,13 @@ pub use self::swizzles::{Vec2Swizzles, Vec3ASwizzles, Vec3Swizzles, Vec4Swizzles
 #[cfg(feature = "transform-types")]
 pub use self::f32::{TransformRT, TransformSRT};
 
-pub struct XYAxes {
+pub struct Vec2x2 {
     pub x_axis: Vec2,
     pub y_axis: Vec2,
+}
+
+pub struct Vec3x3 {
+    pub x_axis: Vec3,
+    pub y_axis: Vec3,
+    pub z_axis: Vec3,
 }

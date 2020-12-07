@@ -819,6 +819,15 @@ impl<T: NumEx> Vector3<T> for XYZ<T> {
     fn dot(self, other: Self) -> T {
         (self.x * other.x) + (self.y * other.y) + (self.z * other.z)
     }
+
+    #[inline]
+    fn cross(self, other: Self) -> Self {
+        Self {
+            x: self.y * other.z - other.y * self.z,
+            y: self.z * other.x - other.z * self.x,
+            z: self.x * other.y - other.x * self.y,
+        }
+    }
 }
 
 impl<T: NumEx> Vector4<T> for XYZW<T> {
@@ -1058,15 +1067,6 @@ impl<T: FloatEx> FloatVector3<T> for XYZ<T> {
     #[inline]
     fn is_nan_mask(self) -> Self::Mask {
         self.map(|a| MaskConst::MASK[a.is_nan() as usize])
-    }
-
-    #[inline]
-    fn cross(self, other: Self) -> Self {
-        Self {
-            x: self.y * other.z - other.y * self.z,
-            y: self.z * other.x - other.z * self.x,
-            z: self.x * other.y - other.x * self.y,
-        }
     }
 }
 

@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use num_traits::Float;
 
 use crate::core::traits::vector::*;
@@ -146,7 +147,7 @@ macro_rules! impl_vec3 {
             #[inline]
             #[allow(dead_code)]
             pub(crate) fn dot_as_vec3(self, other: Self) -> Self {
-                Self(FloatVector3::dot_into_vec(self.0, other.0))
+                Self(Vector3::dot_into_vec(self.0, other.0))
             }
 
             /// Computes the cross product of `self` and `other`.

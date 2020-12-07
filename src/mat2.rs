@@ -329,7 +329,7 @@ macro_rules! impl_mat2 {
         }
 
         impl Deref for $mat2 {
-            type Target = crate::XYAxes;
+            type Target = crate::Vec2x2;
             #[inline(always)]
             fn deref(&self) -> &Self::Target {
                 unsafe { &*(self as *const Self as *const Self::Target) }
@@ -369,7 +369,7 @@ macro_rules! impl_mat2 {
 type InnerF32 = __m128;
 
 #[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
-type InnerF32 = crate::core::storage::XYAxes<f32>;
+type InnerF32 = crate::core::storage::XYx2<f32>;
 
 /// A 2x2 column major matrix.
 #[derive(Clone, Copy)]
@@ -378,7 +378,7 @@ pub struct Mat2(pub(crate) InnerF32);
 
 impl_mat2!(mat2, Mat2, Vec2, f32, InnerF32);
 
-type InnerF64 = crate::core::storage::XYAxes<f64>;
+type InnerF64 = crate::core::storage::XYx2<f64>;
 
 /// A 2x2 column major matrix.
 #[derive(Clone, Copy)]

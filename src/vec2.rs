@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use num_traits::Float;
 
 use crate::core::traits::vector::*;

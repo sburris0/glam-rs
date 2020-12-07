@@ -27,9 +27,26 @@ pub struct XYZW<T> {
 
 #[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
 #[repr(C)]
-pub struct XYAxes<T> {
+pub struct XYx2<T> {
     pub x_axis: XY<T>,
     pub y_axis: XY<T>,
+}
+
+#[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
+#[repr(C)]
+pub struct XYZx3<T> {
+    pub x_axis: XYZ<T>,
+    pub y_axis: XYZ<T>,
+    pub z_axis: XYZ<T>,
+}
+
+#[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
+#[repr(C)]
+pub struct XYZWx4<T> {
+    pub x_axis: XYZW<T>,
+    pub y_axis: XYZW<T>,
+    pub z_axis: XYZW<T>,
+    pub w_axis: XYZW<T>,
 }
 
 #[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
