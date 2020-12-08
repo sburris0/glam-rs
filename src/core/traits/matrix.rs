@@ -1,10 +1,8 @@
-#[cfg(feature = "glam-assert")]
-use crate::core::traits::vector::{FloatVector3, FloatVector4, MaskVector3, VectorConst};
 use crate::core::{
     storage::{XYZWx4, XYZx3, XYx2, XY, XYZ, XYZW},
     traits::{
         scalar::{FloatEx, NumEx},
-        vector::{Vector, Vector3},
+        vector::*,
     },
 };
 
