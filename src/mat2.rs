@@ -329,7 +329,7 @@ macro_rules! impl_mat2 {
         }
 
         impl Deref for $mat2 {
-            type Target = crate::Vec2x2;
+            type Target = crate::Vec2x2<$vec2>;
             #[inline(always)]
             fn deref(&self) -> &Self::Target {
                 unsafe { &*(self as *const Self as *const Self::Target) }

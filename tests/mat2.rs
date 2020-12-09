@@ -191,16 +191,16 @@ mod mat2 {
     impl_mat2_tests!(mat2, Mat2, vec2, Vec2, f32);
 }
 
-// mod dmat2 {
-//     use super::support::deg;
-//     use glam::{dmat2, dvec2, DMat2, DVec2};
+mod dmat2 {
+    use super::support::deg;
+    use glam::{dmat2, dvec2, DMat2, DVec2};
 
-//     #[test]
-//     fn test_mat2_align() {
-//         use std::mem;
-//         assert_eq!(32, mem::size_of::<DMat2>());
-//         assert_eq!(8, mem::align_of::<DMat2>());
-//     }
+    #[test]
+    fn test_mat2_align() {
+        use std::mem;
+        assert_eq!(32, mem::size_of::<DMat2>());
+        assert_eq!(8, mem::align_of::<DMat2>());
+    }
 
-//     impl_mat2_tests!(dmat2, DMat2, dvec2, DVec2, f64);
-// }
+    impl_mat2_tests!(dmat2, DMat2, dvec2, DVec2, f64);
+}

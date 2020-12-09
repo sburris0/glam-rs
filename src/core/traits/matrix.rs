@@ -268,6 +268,9 @@ pub trait FloatMatrix3x3<T: FloatEx>: Matrix3x3<T> {
         )
     }
 
+    fn transform_point2(&self, other: XY<T>) -> XY<T>;
+    fn transform_vector2(&self, other: XY<T>) -> XY<T>;
+
     fn inverse(&self) -> Self;
 }
 

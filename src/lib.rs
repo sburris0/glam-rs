@@ -191,6 +191,7 @@ mod macros;
 
 mod core;
 mod mat2;
+mod mat3;
 mod quat;
 pub mod swizzles;
 mod vec2;
@@ -201,11 +202,12 @@ mod vec_mask;
 #[doc(hidden)]
 pub mod f32;
 
-pub use self::f32::{mat3, mat4, Mat3, Mat4};
+pub use self::f32::{mat4, Mat4};
 
 pub use self::core::storage::{XY, XYZ, XYZW};
 
 pub use self::mat2::{dmat2, DMat2};
+pub use self::mat3::{dmat3, DMat3};
 pub use self::quat::{dquat, DQuat};
 pub use self::vec2::{dvec2, DVec2};
 pub use self::vec3::{dvec3, DVec3};
@@ -213,6 +215,7 @@ pub use self::vec4::{dvec4, DVec4};
 pub use self::vec_mask::{DVec2Mask, DVec3Mask, DVec4Mask};
 
 pub use self::mat2::{mat2, Mat2};
+pub use self::mat3::{mat3, Mat3};
 pub use self::quat::{quat, Quat};
 pub use self::vec2::{vec2, Vec2};
 pub use self::vec3::{vec3, vec3a, Vec3, Vec3A};
@@ -224,13 +227,13 @@ pub use self::swizzles::{Vec2Swizzles, Vec3ASwizzles, Vec3Swizzles, Vec4Swizzles
 #[cfg(feature = "transform-types")]
 pub use self::f32::{TransformRT, TransformSRT};
 
-pub struct Vec2x2 {
-    pub x_axis: Vec2,
-    pub y_axis: Vec2,
+pub struct Vec2x2<T> {
+    pub x_axis: T,
+    pub y_axis: T,
 }
 
-pub struct Vec3x3 {
-    pub x_axis: Vec3,
-    pub y_axis: Vec3,
-    pub z_axis: Vec3,
+pub struct Vec3x3<T> {
+    pub x_axis: T,
+    pub y_axis: T,
+    pub z_axis: T,
 }

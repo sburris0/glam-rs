@@ -233,4 +233,20 @@ impl<T: FloatEx> FloatMatrix3x3<T> for XYZx3<T> {
         // TODO: Work out if it's possible to get rid of the transpose
         Self::from_cols(tmp0.mul(inv_det), tmp1.mul(inv_det), tmp2.mul(inv_det)).transpose()
     }
+
+    #[inline]
+    fn transform_point2(&self, other: XY<T>) -> XY<T> {
+        let mut res = self.x_axis.mul_scalar(other.x);
+        res = self.y_axis.mul_scalar(other.y).add(res);
+        res = self.z_axis.add(res);
+        res = res.mul_scalar(res.z.recip());
+        res.into()
+    }
+
+    #[inline]
+    fn transform_vector2(&self, other: XY<T>) -> XY<T> {
+        let mut res = self.x_axis.mul_scalar(other.x);
+        res = self.y_axis.mul_scalar(other.y).add(res);
+        res.into()
+    }
 }
