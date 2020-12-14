@@ -1,5 +1,5 @@
 use crate::core::{
-    storage::XY,
+    storage::{Vector2x2, XY},
     traits::matrix::{FloatMatrix2x2, Matrix2x2, MatrixConst},
 };
 use crate::{DVec2, Vec2};
@@ -252,16 +252,6 @@ macro_rules! impl_mat2 {
             }
         }
 
-        #[cfg(not(target_arch = "spirv"))]
-        impl fmt::Debug for $mat2 {
-            fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-                fmt.debug_struct("$mat2")
-                    .field("x_axis", &self.x_axis)
-                    .field("y_axis", &self.y_axis)
-                    .finish()
-            }
-        }
-
         impl AsRef<[$t; 4]> for $mat2 {
             #[inline]
             fn as_ref(&self) -> &[$t; 4] {
@@ -324,15 +314,8 @@ macro_rules! impl_mat2 {
             }
         }
 
-        #[cfg(not(target_arch = "spirv"))]
-        impl fmt::Display for $mat2 {
-            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                write!(f, "[{}, {}]", self.x_axis, self.y_axis)
-            }
-        }
-
         impl Deref for $mat2 {
-            type Target = crate::Vec2x2<$vec2>;
+            type Target = Vector2x2<$vec2>;
             #[inline(always)]
             fn deref(&self) -> &Self::Target {
                 unsafe { &*(self as *const Self as *const Self::Target) }
@@ -343,6 +326,23 @@ macro_rules! impl_mat2 {
             #[inline(always)]
             fn deref_mut(&mut self) -> &mut Self::Target {
                 unsafe { &mut *(self as *mut Self as *mut Self::Target) }
+            }
+        }
+
+        #[cfg(not(target_arch = "spirv"))]
+        impl fmt::Debug for $mat2 {
+            fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+                fmt.debug_struct(stringify!($mat2))
+                    .field("x_axis", &self.x_axis)
+                    .field("y_axis", &self.y_axis)
+                    .finish()
+            }
+        }
+
+        #[cfg(not(target_arch = "spirv"))]
+        impl fmt::Display for $mat2 {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                write!(f, "[{}, {}]", self.x_axis, self.y_axis)
             }
         }
 
@@ -376,7 +376,7 @@ type InnerF32 = crate::core::storage::Vector2x2<XY<f32>>;
 
 /// A 2x2 column major matrix.
 #[derive(Clone, Copy)]
-#[repr(C)]
+#[repr(transparent)]
 pub struct Mat2(pub(crate) InnerF32);
 
 impl_mat2!(mat2, Mat2, Vec2, f32, InnerF32);
@@ -385,7 +385,7 @@ type InnerF64 = crate::core::storage::Vector2x2<XY<f64>>;
 
 /// A 2x2 column major matrix.
 #[derive(Clone, Copy)]
-#[repr(C)]
+#[repr(transparent)]
 pub struct DMat2(pub(crate) InnerF64);
 
 impl_mat2!(dmat2, DMat2, DVec2, f64, InnerF64);

@@ -57,6 +57,15 @@ pub struct Vector2x2<V2> {
 }
 
 #[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
+#[repr(C)]
+pub struct Vector4x4<V4> {
+    pub x_axis: V4,
+    pub y_axis: V4,
+    pub z_axis: V4,
+    pub w_axis: V4,
+}
+
+#[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
 #[repr(align(16))]
 pub(crate) struct Align16<T>(pub T);
 

@@ -104,7 +104,7 @@ pub trait Vector2<T>: Vector<T> {
 
     fn dot(self, other: Self) -> T;
 
-    #[inline]
+    #[inline(always)]
     fn dot_into_vec(self, other: Self) -> Self {
         Self::splat(self.dot(other))
     }
@@ -128,7 +128,7 @@ pub trait Vector3<T>: Vector<T> {
 
     fn dot(self, other: Self) -> T;
 
-    #[inline]
+    #[inline(always)]
     fn dot_into_vec(self, other: Self) -> Self {
         Self::splat(self.dot(other))
     }
@@ -138,6 +138,10 @@ pub trait Vector3<T>: Vector<T> {
 
 pub trait Vector4<T>: Vector<T> {
     fn new(x: T, y: T, z: T, w: T) -> Self;
+    fn splat_x(self) -> Self;
+    fn splat_y(self) -> Self;
+    fn splat_z(self) -> Self;
+    fn splat_w(self) -> Self;
     fn from_slice_unaligned(slice: &[T]) -> Self;
     fn write_to_slice_unaligned(self, slice: &mut [T]);
     fn deref(&self) -> &XYZW<T>;
@@ -154,7 +158,7 @@ pub trait Vector4<T>: Vector<T> {
 
     fn dot(self, other: Self) -> T;
 
-    #[inline]
+    #[inline(always)]
     fn dot_into_vec(self, other: Self) -> Self {
         Self::splat(self.dot(other))
     }
@@ -175,7 +179,7 @@ pub trait FloatVector2<T: FloatEx>: FloatVector<T> + Vector2<T> {
     fn is_nan(self) -> bool;
     fn is_nan_mask(self) -> Self::Mask;
 
-    #[inline]
+    #[inline(always)]
     fn dot_into_vec(self, other: Self) -> Self {
         Self::splat(self.dot(other))
     }
@@ -195,7 +199,7 @@ pub trait FloatVector2<T: FloatEx>: FloatVector<T> + Vector2<T> {
         self.mul_scalar(self.length_recip())
     }
 
-    #[inline]
+    #[inline(always)]
     fn length_squared(self) -> T {
         self.dot(self)
     }
@@ -248,7 +252,7 @@ pub trait FloatVector3<T: FloatEx>: FloatVector<T> + Vector3<T> {
         self.mul_scalar(self.length_recip())
     }
 
-    #[inline]
+    #[inline(always)]
     fn length_squared(self) -> T {
         self.dot(self)
     }
@@ -291,7 +295,7 @@ pub trait FloatVector4<T: FloatEx>: FloatVector<T> + Vector4<T> {
         self.mul_scalar(self.length_recip())
     }
 
-    #[inline]
+    #[inline(always)]
     fn length_squared(self) -> T {
         self.dot(self)
     }

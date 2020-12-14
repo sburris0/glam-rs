@@ -2,18 +2,6 @@
 use num_traits::Float;
 
 #[inline]
-pub(crate) fn scalar_sin_cos(x: f32) -> (f32, f32) {
-    // // expect sse2 to be available on all x86 builds
-    // #[cfg(target_feature = "sse2")]
-    // unsafe {
-    //     let (sinx, cosx) = sin_cos_sse2(_mm_set1_ps(x));
-    //     (_mm_cvtss_f32(sinx), _mm_cvtss_f32(cosx))
-    // }
-    // #[cfg(not(target_feature = "sse2"))]
-    x.sin_cos()
-}
-
-#[inline]
 pub fn scalar_acos(value: f32) -> f32 {
     // Based on https://github.com/microsoft/DirectXMath `XMScalarAcos`
     // Clamp input to [-1,1].
@@ -422,52 +410,52 @@ fn test_scalar_acos() {
     assert_approx_eq!(scalar_acos(-2.0), core::f32::consts::PI);
 }
 
-#[test]
-fn test_scalar_sin_cos() {
-    fn test_scalar_sin_cos_angle(a: f32) {
-        let (s1, c1) = scalar_sin_cos(a);
-        let (s2, c2) = a.sin_cos();
-        // dbg!(a);
-        assert_approx_eq!(s1, s2);
-        assert_approx_eq!(c1, c2);
-    }
+// #[test]
+// fn test_scalar_sin_cos() {
+//     fn test_scalar_sin_cos_angle(a: f32) {
+//         let (s1, c1) = scalar_sin_cos(a);
+//         let (s2, c2) = a.sin_cos();
+//         // dbg!(a);
+//         assert_approx_eq!(s1, s2);
+//         assert_approx_eq!(c1, c2);
+//     }
 
-    // test 1024 floats between -PI and PI inclusive
-    const MAX_TESTS: u32 = 1024 / 2;
-    const SIGN: u32 = 0x80_00_00_00;
-    let ptve_pi = core::f32::consts::PI.to_bits();
-    let ngve_pi = SIGN | ptve_pi;
-    let step_pi = (ptve_pi / MAX_TESTS) as usize;
-    for f in (SIGN..=ngve_pi).step_by(step_pi).map(|i| f32::from_bits(i)) {
-        test_scalar_sin_cos_angle(f);
-    }
-    for f in (0..=ptve_pi).step_by(step_pi).map(|i| f32::from_bits(i)) {
-        test_scalar_sin_cos_angle(f);
-    }
+//     // test 1024 floats between -PI and PI inclusive
+//     const MAX_TESTS: u32 = 1024 / 2;
+//     const SIGN: u32 = 0x80_00_00_00;
+//     let ptve_pi = core::f32::consts::PI.to_bits();
+//     let ngve_pi = SIGN | ptve_pi;
+//     let step_pi = (ptve_pi / MAX_TESTS) as usize;
+//     for f in (SIGN..=ngve_pi).step_by(step_pi).map(|i| f32::from_bits(i)) {
+//         test_scalar_sin_cos_angle(f);
+//     }
+//     for f in (0..=ptve_pi).step_by(step_pi).map(|i| f32::from_bits(i)) {
+//         test_scalar_sin_cos_angle(f);
+//     }
 
-    // test 1024 floats between -INF and +INF exclusive
-    let ptve_inf = core::f32::INFINITY.to_bits();
-    let ngve_inf = core::f32::NEG_INFINITY.to_bits();
-    let step_inf = (ptve_inf / MAX_TESTS) as usize;
-    for f in (SIGN..ngve_inf)
-        .step_by(step_inf)
-        .map(|i| f32::from_bits(i))
-    {
-        test_scalar_sin_cos_angle(f);
-    }
-    for f in (0..ptve_inf).step_by(step_inf).map(|i| f32::from_bits(i)) {
-        test_scalar_sin_cos_angle(f);
-    }
+//     // test 1024 floats between -INF and +INF exclusive
+//     let ptve_inf = core::f32::INFINITY.to_bits();
+//     let ngve_inf = core::f32::NEG_INFINITY.to_bits();
+//     let step_inf = (ptve_inf / MAX_TESTS) as usize;
+//     for f in (SIGN..ngve_inf)
+//         .step_by(step_inf)
+//         .map(|i| f32::from_bits(i))
+//     {
+//         test_scalar_sin_cos_angle(f);
+//     }
+//     for f in (0..ptve_inf).step_by(step_inf).map(|i| f32::from_bits(i)) {
+//         test_scalar_sin_cos_angle(f);
+//     }
 
-    // +inf and -inf should return NaN
-    let (s, c) = scalar_sin_cos(core::f32::INFINITY);
-    assert!(s.is_nan());
-    assert!(c.is_nan());
+//     // +inf and -inf should return NaN
+//     let (s, c) = scalar_sin_cos(core::f32::INFINITY);
+//     assert!(s.is_nan());
+//     assert!(c.is_nan());
 
-    let (s, c) = scalar_sin_cos(core::f32::NEG_INFINITY);
-    assert!(s.is_nan());
-    assert!(c.is_nan());
-}
+//     let (s, c) = scalar_sin_cos(core::f32::NEG_INFINITY);
+//     assert!(s.is_nan());
+//     assert!(c.is_nan());
+// }
 
 #[test]
 #[cfg(vec4_sse2)]

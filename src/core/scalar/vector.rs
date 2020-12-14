@@ -838,6 +838,26 @@ impl<T: NumEx> Vector4<T> for XYZW<T> {
     }
 
     #[inline(always)]
+    fn splat_x(self) -> Self {
+        Self::splat(self.x)
+    }
+
+    #[inline(always)]
+    fn splat_y(self) -> Self {
+        Self::splat(self.y)
+    }
+
+    #[inline(always)]
+    fn splat_z(self) -> Self {
+        Self::splat(self.z)
+    }
+
+    #[inline(always)]
+    fn splat_w(self) -> Self {
+        Self::splat(self.w)
+    }
+
+    #[inline(always)]
     fn from_slice_unaligned(slice: &[T]) -> Self {
         Self {
             x: slice[0],

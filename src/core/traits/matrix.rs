@@ -1,5 +1,5 @@
 use crate::core::{
-    storage::{Vector2x2, XYZWx4, XYZx3, XY, XYZ, XYZW},
+    storage::{Vector2x2, Vector4x4, XYZx3, XY, XYZ, XYZW},
     traits::{
         scalar::{FloatEx, NumEx},
         vector::*,
@@ -280,7 +280,7 @@ pub trait FloatMatrix3x3<T: FloatEx>: Matrix3x3<T> {
     fn inverse(&self) -> Self;
 }
 
-pub trait Matrix4x4<T: NumEx>: Matrix<T> {
+pub trait Matrix4x4<T: NumEx, V4: Vector4<T>>: Matrix<T> {
     #[rustfmt::skip]
     fn new(
         m00: T, m01: T, m02: T, m03: T,
@@ -289,12 +289,21 @@ pub trait Matrix4x4<T: NumEx>: Matrix<T> {
         m30: T, m31: T, m32: T, m33: T,
         ) -> Self;
 
-    fn deref(&self) -> &XYZWx4<T>;
-    fn deref_mut(&mut self) -> &mut XYZWx4<T>;
+    fn x_axis(&self) -> &V4;
+    fn y_axis(&self) -> &V4;
+    fn z_axis(&self) -> &V4;
+    fn w_axis(&self) -> &V4;
+
+    fn deref(&self) -> &Vector4x4<XYZW<T>>;
+    fn deref_mut(&mut self) -> &mut Vector4x4<XYZW<T>>;
 
     #[rustfmt::skip]
     #[inline(always)]
-    fn from_cols(x_axis: XYZW<T>, y_axis: XYZW<T>, z_axis: XYZW<T>, w_axis: XYZW<T>) -> Self {
+    fn from_cols(x_axis: V4, y_axis: V4, z_axis: V4, w_axis: V4) -> Self {
+        let x_axis = x_axis.deref();
+        let y_axis = y_axis.deref();
+        let z_axis = z_axis.deref();
+        let w_axis = w_axis.deref();
         Self::new(
             x_axis.x, x_axis.y, x_axis.z, x_axis.w,
             y_axis.x, y_axis.y, y_axis.z, y_axis.w,
@@ -317,11 +326,15 @@ pub trait Matrix4x4<T: NumEx>: Matrix<T> {
     #[inline(always)]
     fn to_cols_array(&self) -> [T; 16] {
         let m = self.deref();
+        let x_axis = m.x_axis.deref();
+        let y_axis = m.y_axis.deref();
+        let z_axis = m.z_axis.deref();
+        let w_axis = m.w_axis.deref();
         [
-            m.x_axis.x, m.x_axis.y, m.x_axis.z, m.x_axis.w,
-            m.y_axis.x, m.y_axis.y, m.y_axis.z, m.y_axis.w,
-            m.z_axis.x, m.z_axis.y, m.z_axis.z, m.z_axis.w,
-            m.w_axis.x, m.w_axis.y, m.w_axis.z, m.w_axis.w,
+            x_axis.x, x_axis.y, x_axis.z, x_axis.w,
+            y_axis.x, y_axis.y, y_axis.z, y_axis.w,
+            z_axis.x, z_axis.y, z_axis.z, z_axis.w,
+            w_axis.x, w_axis.y, w_axis.z, w_axis.w,
         ]
     }
 
@@ -337,35 +350,85 @@ pub trait Matrix4x4<T: NumEx>: Matrix<T> {
     #[inline(always)]
     fn to_cols_array_2d(&self) -> [[T; 4]; 4] {
         let m = self.deref();
+        let x_axis = m.x_axis.deref();
+        let y_axis = m.y_axis.deref();
+        let z_axis = m.z_axis.deref();
+        let w_axis = m.w_axis.deref();
         [
-            [m.x_axis.x, m.x_axis.y, m.x_axis.z, m.x_axis.w],
-            [m.y_axis.x, m.y_axis.y, m.y_axis.z, m.y_axis.w],
-            [m.z_axis.x, m.z_axis.y, m.z_axis.z, m.z_axis.w],
-            [m.w_axis.x, m.w_axis.y, m.w_axis.z, m.w_axis.w],
+            [x_axis.x, x_axis.y, x_axis.z, x_axis.w],
+            [y_axis.x, y_axis.y, y_axis.z, y_axis.w],
+            [z_axis.x, z_axis.y, z_axis.z, z_axis.w],
+            [w_axis.x, w_axis.y, w_axis.z, w_axis.w],
         ]
     }
 
     #[rustfmt::skip]
     #[inline(always)]
-    fn from_scale(scale: XYZW<T>) -> Self {
+    fn from_scale(scale: XYZ<T>) -> Self {
         Self::new(
             scale.x, T::ZERO, T::ZERO, T::ZERO,
             T::ZERO, scale.y, T::ZERO, T::ZERO,
             T::ZERO, T::ZERO, scale.z, T::ZERO,
-            T::ZERO, T::ZERO, T::ZERO, scale.w,
+            T::ZERO, T::ZERO, T::ZERO, T::ZERO,
         )
     }
 
     fn determinant(&self) -> T;
     fn transpose(&self) -> Self;
-    fn mul_vector(&self, other: XYZW<T>) -> XYZW<T>;
-    fn mul_matrix(&self, other: &Self) -> Self;
-    fn mul_scalar(&self, other: T) -> Self;
-    fn add_matrix(&self, other: &Self) -> Self;
-    fn sub_matrix(&self, other: &Self) -> Self;
+
+    #[inline]
+    fn mul_vector(&self, other: &V4) -> V4 {
+        let mut res = self.x_axis().mul(other.splat_x());
+        res = self.y_axis().mul_add(other.splat_y(), res);
+        res = self.z_axis().mul_add(other.splat_z(), res);
+        res = self.w_axis().mul_add(other.splat_w(), res);
+        res
+    }
+
+    #[inline]
+    fn mul_matrix(&self, other: &Self) -> Self {
+        Self::from_cols(
+            self.mul_vector(other.x_axis()),
+            self.mul_vector(other.y_axis()),
+            self.mul_vector(other.z_axis()),
+            self.mul_vector(other.w_axis()),
+        )
+    }
+
+    #[inline]
+    fn mul_scalar(&self, other: T) -> Self {
+        Self::from_cols(
+            self.x_axis().mul_scalar(other),
+            self.y_axis().mul_scalar(other),
+            self.z_axis().mul_scalar(other),
+            self.w_axis().mul_scalar(other),
+        )
+    }
+
+    #[inline]
+    fn add_matrix(&self, other: &Self) -> Self {
+        // TODO: Make Vector4::add take a ref?
+        Self::from_cols(
+            self.x_axis().add(*other.x_axis()),
+            self.y_axis().add(*other.y_axis()),
+            self.z_axis().add(*other.z_axis()),
+            self.w_axis().add(*other.w_axis()),
+        )
+    }
+
+    #[inline]
+    fn sub_matrix(&self, other: &Self) -> Self {
+        // TODO: Make Vector4::sub take a ref?
+        Self::from_cols(
+            self.x_axis().sub(*other.x_axis()),
+            self.y_axis().sub(*other.y_axis()),
+            self.z_axis().sub(*other.z_axis()),
+            self.w_axis().sub(*other.w_axis()),
+        )
+    }
 }
 
-pub trait FloatMatrix4x4<T: FloatEx>: Matrix4x4<T> {
+pub trait FloatMatrix4x4<T: FloatEx, V4: FloatVector4<T>>: Matrix4x4<T, V4> {
     fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool;
 
     fn inverse(&self) -> Self;

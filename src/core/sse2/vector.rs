@@ -358,6 +358,26 @@ impl Vector4<f32> for __m128 {
     }
 
     #[inline(always)]
+    fn splat_x(self) -> Self {
+        unsafe { _mm_shuffle_ps(self, self, 0b00_00_00_00) }
+    }
+
+    #[inline(always)]
+    fn splat_y(self) -> Self {
+        unsafe { _mm_shuffle_ps(self, self, 0b01_01_01_01) }
+    }
+
+    #[inline(always)]
+    fn splat_z(self) -> Self {
+        unsafe { _mm_shuffle_ps(self, self, 0b10_10_10_10) }
+    }
+
+    #[inline(always)]
+    fn splat_w(self) -> Self {
+        unsafe { _mm_shuffle_ps(self, self, 0b11_11_11_11) }
+    }
+
+    #[inline(always)]
     fn from_slice_unaligned(slice: &[f32]) -> Self {
         assert!(slice.len() >= 4);
         unsafe { _mm_loadu_ps(slice.as_ptr()) }
