@@ -369,7 +369,7 @@ pub trait Matrix4x4<T: NumEx, V4: Vector4<T>>: Matrix<T> {
             scale.x, T::ZERO, T::ZERO, T::ZERO,
             T::ZERO, scale.y, T::ZERO, T::ZERO,
             T::ZERO, T::ZERO, scale.z, T::ZERO,
-            T::ZERO, T::ZERO, T::ZERO, T::ZERO,
+            T::ZERO, T::ZERO, T::ZERO, T::ONE,
         )
     }
 

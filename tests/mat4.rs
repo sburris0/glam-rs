@@ -176,14 +176,14 @@ fn test_from_ypr() {
 #[test]
 fn test_from_scale() {
     let m = Mat4::from_scale(Vec3::new(2.0, 4.0, 8.0));
-    assert_approx_eq!(
-        m.transform_point3(Vec3::new(1.0, 1.0, 1.0)),
-        Vec3::new(2.0, 4.0, 8.0)
-    );
     assert_approx_eq!(Vec4::unit_x() * 2.0, m.x_axis);
     assert_approx_eq!(Vec4::unit_y() * 4.0, m.y_axis);
     assert_approx_eq!(Vec4::unit_z() * 8.0, m.z_axis);
     assert_approx_eq!(Vec4::unit_w(), m.w_axis);
+    assert_approx_eq!(
+        m.transform_point3(Vec3::new(1.0, 1.0, 1.0)),
+        Vec3::new(2.0, 4.0, 8.0)
+    );
 }
 
 #[test]

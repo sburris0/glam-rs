@@ -8,7 +8,7 @@ use core::mem::MaybeUninit;
 use crate::{
     const_m128,
     core::{
-        storage::{Align16, Vector2x2, Vector4x4, XY, XYZ, XYZW},
+        storage::{Align16, Vector2x2, Vector4x4, XY, XYZW},
         traits::{
             matrix::{FloatMatrix2x2, FloatMatrix4x4, Matrix, Matrix2x2, Matrix4x4, MatrixConst},
             vector::{FloatVector4, Vector4, Vector4Const},
@@ -253,17 +253,6 @@ impl Matrix4x4<f32, __m128> for Vector4x4<__m128> {
             [z_axis.x, z_axis.y, z_axis.z, z_axis.w],
             [w_axis.x, w_axis.y, w_axis.z, w_axis.w],
         ]
-    }
-
-    #[rustfmt::skip]
-    #[inline(always)]
-    fn from_scale(scale: XYZ<f32>) -> Self {
-        Self::new(
-            scale.x, 0.0, 0.0, 0.0,
-            0.0, scale.y, 0.0, 0.0,
-            0.0, 0.0, scale.z, 0.0,
-            0.0, 0.0, 0.0, 0.0,
-        )
     }
 
     fn determinant(&self) -> f32 {
