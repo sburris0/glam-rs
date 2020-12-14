@@ -8,7 +8,7 @@ use core::mem::MaybeUninit;
 use crate::{
     const_m128,
     core::{
-        storage::{Align16, XYx2, XY},
+        storage::{Align16, Vector2x2, XY},
         traits::{
             matrix::{FloatMatrix2x2, Matrix, Matrix2x2, MatrixConst},
             vector::FloatVector4,
@@ -23,20 +23,20 @@ impl MatrixConst for __m128 {
 
 impl Matrix<f32> for __m128 {}
 
-impl Matrix2x2<f32> for __m128 {
+impl Matrix2x2<f32, XY<f32>> for __m128 {
     #[inline(always)]
     fn new(m00: f32, m01: f32, m10: f32, m11: f32) -> Self {
         unsafe { _mm_set_ps(m11, m10, m01, m00) }
     }
 
     #[inline(always)]
-    fn deref(&self) -> &XYx2<f32> {
-        unsafe { &*(self as *const Self as *const XYx2<f32>) }
+    fn deref(&self) -> &Vector2x2<XY<f32>> {
+        unsafe { &*(self as *const Self as *const Vector2x2<XY<f32>>) }
     }
 
     #[inline(always)]
-    fn deref_mut(&mut self) -> &mut XYx2<f32> {
-        unsafe { &mut *(self as *mut Self as *mut XYx2<f32>) }
+    fn deref_mut(&mut self) -> &mut Vector2x2<XY<f32>> {
+        unsafe { &mut *(self as *mut Self as *mut Vector2x2<XY<f32>>) }
     }
 
     // #[inline(always)]
@@ -113,7 +113,7 @@ impl Matrix2x2<f32> for __m128 {
     }
 }
 
-impl FloatMatrix2x2<f32> for __m128 {
+impl FloatMatrix2x2<f32, XY<f32>> for __m128 {
     fn abs_diff_eq(&self, other: &Self, max_abs_diff: f32) -> bool {
         FloatVector4::abs_diff_eq(*self, *other, max_abs_diff)
     }

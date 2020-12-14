@@ -749,10 +749,13 @@ fn test_vec4_private() {
 
 #[cfg(test)]
 mod tests {
-    use super::{Vec3, vec4};
+    use super::{vec4, Vec3};
 
     #[test]
     fn from_vec3() {
-        assert_eq!(vec4(1.0, 2.0, 3.0, 4.0), (Vec3::new(1.0, 2.0, 3.0), 4.0).into());
+        assert_eq!(
+            vec4(1.0, 2.0, 3.0, 4.0),
+            (Vec3::new(1.0, 2.0, 3.0), 4.0).into()
+        );
     }
 }

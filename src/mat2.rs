@@ -1,4 +1,7 @@
-use crate::core::traits::matrix::{FloatMatrix2x2, Matrix2x2, MatrixConst};
+use crate::core::{
+    storage::XY,
+    traits::matrix::{FloatMatrix2x2, Matrix2x2, MatrixConst},
+};
 use crate::{DVec2, Vec2};
 #[cfg(not(target_arch = "spirv"))]
 use core::fmt;
@@ -34,7 +37,7 @@ macro_rules! impl_mat2 {
         impl Default for $mat2 {
             #[inline]
             fn default() -> Self {
-                Self($inner::IDENTITY)
+                Self::identity()
             }
         }
 
@@ -369,7 +372,7 @@ macro_rules! impl_mat2 {
 type InnerF32 = __m128;
 
 #[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
-type InnerF32 = crate::core::storage::XYx2<f32>;
+type InnerF32 = crate::core::storage::Vector2x2<XY<f32>>;
 
 /// A 2x2 column major matrix.
 #[derive(Clone, Copy)]
@@ -378,7 +381,7 @@ pub struct Mat2(pub(crate) InnerF32);
 
 impl_mat2!(mat2, Mat2, Vec2, f32, InnerF32);
 
-type InnerF64 = crate::core::storage::XYx2<f64>;
+type InnerF64 = crate::core::storage::Vector2x2<XY<f64>>;
 
 /// A 2x2 column major matrix.
 #[derive(Clone, Copy)]

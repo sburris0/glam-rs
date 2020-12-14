@@ -1,5 +1,5 @@
 use crate::core::{
-    storage::{XYZWx4, XYZx3, XYx2, XY, XYZ, XYZW},
+    storage::{Vector2x2, XYZWx4, XYZx3, XY, XYZ, XYZW},
     traits::{
         scalar::{FloatEx, NumEx},
         vector::*,
@@ -13,14 +13,16 @@ pub trait MatrixConst {
 
 pub trait Matrix<T: NumEx>: Sized + Copy + Clone {}
 
-pub trait Matrix2x2<T: NumEx>: Matrix<T> {
+pub trait Matrix2x2<T: NumEx, V2: Vector2<T>>: Matrix<T> {
     fn new(m00: T, m01: T, m10: T, m11: T) -> Self;
 
-    fn deref(&self) -> &XYx2<T>;
-    fn deref_mut(&mut self) -> &mut XYx2<T>;
+    fn deref(&self) -> &Vector2x2<V2>;
+    fn deref_mut(&mut self) -> &mut Vector2x2<V2>;
 
     #[inline(always)]
-    fn from_cols(x_axis: XY<T>, y_axis: XY<T>) -> Self {
+    fn from_cols(x_axis: V2, y_axis: V2) -> Self {
+        let x_axis = x_axis.deref();
+        let y_axis = y_axis.deref();
         Self::new(x_axis.x, x_axis.y, y_axis.x, y_axis.y)
     }
 
@@ -33,8 +35,10 @@ pub trait Matrix2x2<T: NumEx>: Matrix<T> {
     #[inline(always)]
     fn to_cols_array(&self) -> [T; 4] {
         let m = self.deref();
-        [m.x_axis.x, m.x_axis.y,
-         m.y_axis.x, m.y_axis.y]
+        let x_axis = m.x_axis.deref();
+        let y_axis = m.y_axis.deref();
+        [x_axis.x, x_axis.y,
+         y_axis.x, y_axis.y]
     }
 
     #[rustfmt::skip]
@@ -49,8 +53,10 @@ pub trait Matrix2x2<T: NumEx>: Matrix<T> {
     #[inline(always)]
     fn to_cols_array_2d(&self) -> [[T; 2]; 2] {
         let m = self.deref();
-        [[m.x_axis.x, m.x_axis.y],
-         [m.y_axis.x, m.y_axis.y]]
+        let x_axis = m.x_axis.deref();
+        let y_axis = m.y_axis.deref();
+        [[x_axis.x, x_axis.y],
+         [y_axis.x, y_axis.y]]
     }
 
     #[rustfmt::skip]
@@ -70,7 +76,7 @@ pub trait Matrix2x2<T: NumEx>: Matrix<T> {
     fn sub_matrix(&self, other: &Self) -> Self;
 }
 
-pub trait FloatMatrix2x2<T: FloatEx>: Matrix2x2<T> {
+pub trait FloatMatrix2x2<T: FloatEx, V2: FloatVector2<T>>: Matrix2x2<T, V2> {
     fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool;
 
     #[rustfmt::skip]

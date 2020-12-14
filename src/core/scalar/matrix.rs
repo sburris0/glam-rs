@@ -1,5 +1,5 @@
 use crate::core::{
-    storage::{XYZx3, XYx2, XY, XYZ},
+    storage::{Vector2x2, XYZx3, XY, XYZ},
     traits::{
         matrix::{FloatMatrix2x2, FloatMatrix3x3, Matrix, Matrix2x2, Matrix3x3, MatrixConst},
         scalar::{FloatEx, NumEx},
@@ -7,7 +7,7 @@ use crate::core::{
     },
 };
 
-impl<T: NumEx> MatrixConst for XYx2<T> {
+impl<T: NumEx> MatrixConst for Vector2x2<XY<T>> {
     const ZERO: Self = Self {
         x_axis: XY::ZERO,
         y_axis: XY::ZERO,
@@ -18,9 +18,9 @@ impl<T: NumEx> MatrixConst for XYx2<T> {
     };
 }
 
-impl<T: NumEx> Matrix<T> for XYx2<T> {}
+impl<T: NumEx> Matrix<T> for Vector2x2<XY<T>> {}
 
-impl<T: NumEx> Matrix2x2<T> for XYx2<T> {
+impl<T: NumEx> Matrix2x2<T, XY<T>> for Vector2x2<XY<T>> {
     #[inline(always)]
     fn new(m00: T, m01: T, m10: T, m11: T) -> Self {
         Self {
@@ -30,12 +30,12 @@ impl<T: NumEx> Matrix2x2<T> for XYx2<T> {
     }
 
     #[inline(always)]
-    fn deref(&self) -> &XYx2<T> {
+    fn deref(&self) -> &Vector2x2<XY<T>> {
         self
     }
 
     #[inline(always)]
-    fn deref_mut(&mut self) -> &mut XYx2<T> {
+    fn deref_mut(&mut self) -> &mut Vector2x2<XY<T>> {
         self
     }
 
@@ -78,7 +78,7 @@ impl<T: NumEx> Matrix2x2<T> for XYx2<T> {
     }
 }
 
-impl<T: FloatEx> FloatMatrix2x2<T> for XYx2<T> {
+impl<T: FloatEx> FloatMatrix2x2<T, XY<T>> for Vector2x2<XY<T>> {
     fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool {
         self.x_axis.abs_diff_eq(other.x_axis, max_abs_diff)
             && self.y_axis.abs_diff_eq(other.y_axis, max_abs_diff)

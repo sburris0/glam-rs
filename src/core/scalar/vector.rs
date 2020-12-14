@@ -303,6 +303,7 @@ impl<T: NumEx> VectorConst for XYZ<T> {
         z: <T as NumConstEx>::ONE,
     };
 }
+
 impl<T: NumEx> Vector3Const for XYZ<T> {
     const UNIT_X: Self = Self {
         x: <T as NumConstEx>::ONE,
