@@ -1,10 +1,8 @@
 mod cast;
-pub(crate) mod funcs;
 #[cfg(feature = "transform-types")]
 mod transform;
 
 pub use cast::{F32x16Cast, F32x2Cast, F32x3Cast, F32x4Cast, F32x9Cast};
-pub(crate) use funcs::{scalar_acos};
 #[cfg(feature = "transform-types")]
 pub use transform::*;
 

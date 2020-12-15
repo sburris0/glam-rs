@@ -141,7 +141,36 @@ impl FloatEx for f32 {
     // }
     #[inline(always)]
     fn acos_approx(self) -> Self {
-        crate::f32::scalar_acos(self)
+        // Based on https://github.com/microsoft/DirectXMath `XMScalarAcos`
+        // Clamp input to [-1,1].
+        let nonnegative = self >= 0.0;
+        let x = self.abs();
+        let mut omx = 1.0 - x;
+        if omx < 0.0 {
+            omx = 0.0;
+        }
+        let root = omx.sqrt();
+
+        // 7-degree minimax approximation
+        #[allow(clippy::approx_constant)]
+        let mut result = ((((((-0.001_262_491_1 * x + 0.006_670_09) * x - 0.017_088_126) * x
+            + 0.030_891_88)
+            * x
+            - 0.050_174_303)
+            * x
+            + 0.088_978_99)
+            * x
+            - 0.214_598_8)
+            * x
+            + 1.570_796_3;
+        result *= root;
+
+        // acos(x) = pi - acos(-x) when x < 0
+        if nonnegative {
+            result
+        } else {
+            core::f32::consts::PI - result
+        }
     }
 }
 
@@ -300,3 +329,74 @@ impl<T: Num> Sub for XYZW<T> {
     }
 }
 */
+
+#[cfg(test)]
+macro_rules! assert_approx_eq {
+    ($a:expr, $b:expr) => {{
+        assert_approx_eq!($a, $b, core::f32::EPSILON);
+    }};
+    ($a:expr, $b:expr, $eps:expr) => {{
+        let (a, b) = (&$a, &$b);
+        let eps = $eps;
+        assert!(
+            (a - b).abs() <= eps,
+            "assertion failed: `(left !== right)` \
+             (left: `{:?}`, right: `{:?}`, expect diff: `{:?}`, real diff: `{:?}`)",
+            *a,
+            *b,
+            eps,
+            (a - b).abs()
+        );
+    }};
+}
+
+#[cfg(test)]
+macro_rules! assert_relative_eq {
+    ($a:expr, $b:expr) => {{
+        assert_relative_eq!($a, $b, core::f32::EPSILON);
+    }};
+    ($a:expr, $b:expr, $eps:expr) => {{
+        let (a, b) = (&$a, &$b);
+        let eps = $eps;
+        let diff = (a - b).abs();
+        let largest = a.abs().max(b.abs());
+        assert!(
+            diff <= largest * eps,
+            "assertion failed: `(left !== right)` \
+             (left: `{:?}`, right: `{:?}`, expect diff: `{:?}`, real diff: `{:?}`)",
+            *a,
+            *b,
+            largest * eps,
+            diff
+        );
+    }};
+}
+
+#[test]
+fn test_scalar_acos() {
+    fn test_scalar_acos_angle(a: f32) {
+        // 1e-6 is the lowest epsilon that will pass
+        assert_relative_eq!(a.acos_approx(), a.acos(), 1e-6);
+        // assert_approx_eq!(scalar_acos(a), a.acos(), 1e-6);
+    }
+
+    // test 1024 floats between -1.0 and 1.0 inclusive
+    const MAX_TESTS: u32 = 1024 / 2;
+    const SIGN: u32 = 0x80_00_00_00;
+    const PTVE_ONE: u32 = 0x3f_80_00_00; // 1.0_f32.to_bits();
+    const NGVE_ONE: u32 = SIGN | PTVE_ONE;
+    const STEP_SIZE: usize = (PTVE_ONE / MAX_TESTS) as usize;
+    for f in (SIGN..=NGVE_ONE)
+        .step_by(STEP_SIZE)
+        .map(|i| f32::from_bits(i))
+    {
+        test_scalar_acos_angle(f);
+    }
+    for f in (0..=PTVE_ONE).step_by(STEP_SIZE).map(|i| f32::from_bits(i)) {
+        test_scalar_acos_angle(f);
+    }
+
+    // input is clamped to -1.0..1.0
+    assert_approx_eq!(2.0.acos_approx(), 0.0);
+    assert_approx_eq!((-2.0).acos_approx(), core::f32::consts::PI);
+}
