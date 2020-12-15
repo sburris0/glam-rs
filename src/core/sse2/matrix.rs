@@ -11,6 +11,7 @@ use crate::{
         storage::{Align16, Vector2x2, Vector4x4, XY, XYZW},
         traits::{
             matrix::{FloatMatrix2x2, FloatMatrix4x4, Matrix, Matrix2x2, Matrix4x4, MatrixConst},
+            projection::ProjectionMatrix,
             vector::{FloatVector4, Vector4, Vector4Const},
         },
     },
@@ -461,3 +462,5 @@ impl FloatMatrix4x4<f32, __m128> for Vector4x4<__m128> {
         }
     }
 }
+
+impl ProjectionMatrix<f32, __m128> for Vector4x4<__m128> {}

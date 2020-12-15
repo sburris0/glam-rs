@@ -1,8 +1,11 @@
 #[allow(unused_imports)]
 use num_traits::Float;
 
-use crate::core::traits::matrix::{FloatMatrix4x4, Matrix4x4, MatrixConst};
-use crate::{Mat3, Quat, Vec3, Vec3A, Vec3ASwizzles, Vec4, Vec4Swizzles};
+use crate::core::traits::{
+    matrix::{FloatMatrix4x4, Matrix4x4, MatrixConst},
+    projection::ProjectionMatrix,
+};
+use crate::{Quat, Vec3, Vec3A, Vec3ASwizzles, Vec4, Vec4Swizzles};
 #[cfg(all(vec4_sse2, target_arch = "x86"))]
 use core::arch::x86::*;
 #[cfg(all(vec4_sse2, target_arch = "x86_64"))]
@@ -20,36 +23,13 @@ use std::iter::{Product, Sum};
 macro_rules! impl_mat4 {
     ($new:ident, $mat4:ident, $vec4:ident, $vec3:ident, $quat:ident, $t:ty, $inner:ident) => {
         /// Creates a `$mat4` from four column vectors.
-        #[inline]
+        #[inline(always)]
         pub fn $new(x_axis: $vec4, y_axis: $vec4, z_axis: $vec4, w_axis: $vec4) -> $mat4 {
             $mat4::from_cols(x_axis, y_axis, z_axis, w_axis)
         }
 
-        #[inline]
-        fn quat_to_axes(rotation: $quat) -> ($vec4, $vec4, $vec4) {
-            glam_assert!(rotation.is_normalized());
-            let (x, y, z, w) = rotation.into();
-            let x2 = x + x;
-            let y2 = y + y;
-            let z2 = z + z;
-            let xx = x * x2;
-            let xy = x * y2;
-            let xz = x * z2;
-            let yy = y * y2;
-            let yz = y * z2;
-            let zz = z * z2;
-            let wx = w * x2;
-            let wy = w * y2;
-            let wz = w * z2;
-
-            let x_axis = $vec4::new(1.0 - (yy + zz), xy + wz, xz - wy, 0.0);
-            let y_axis = $vec4::new(xy - wz, 1.0 - (xx + zz), yz + wx, 0.0);
-            let z_axis = $vec4::new(xz + wy, yz - wx, 1.0 - (xx + yy), 0.0);
-            (x_axis, y_axis, z_axis)
-        }
-
         impl Default for $mat4 {
-            #[inline]
+            #[inline(always)]
             fn default() -> Self {
                 Self::identity()
             }
@@ -71,19 +51,19 @@ macro_rules! impl_mat4 {
 
         impl $mat4 {
             /// Creates a 4x4 matrix with all elements set to `0.0`.
-            #[inline]
+            #[inline(always)]
             pub const fn zero() -> Self {
                 Self($inner::ZERO)
             }
 
             /// Creates a 4x4 identity matrix.
-            #[inline]
+            #[inline(always)]
             pub const fn identity() -> Self {
                 Self($inner::IDENTITY)
             }
 
             /// Creates a 4x4 matrix from four column vectors.
-            #[inline]
+            #[inline(always)]
             pub fn from_cols(x_axis: $vec4, y_axis: $vec4, z_axis: $vec4, w_axis: $vec4) -> Self {
                 Self($inner::from_cols(x_axis.0, y_axis.0, z_axis.0, w_axis.0))
             }
@@ -91,14 +71,14 @@ macro_rules! impl_mat4 {
             /// Creates a 4x4 matrix from a `[$t; 16]` stored in column major order.
             /// If your data is stored in row major you will need to `transpose` the
             /// returned matrix.
-            #[inline]
+            #[inline(always)]
             pub fn from_cols_array(m: &[$t; 16]) -> Self {
                 Self($inner::from_cols_array(m))
             }
 
             /// Creates a `[$t; 16]` storing data in column major order.
             /// If you require data in row major order `transpose` the matrix first.
-            #[inline]
+            #[inline(always)]
             pub fn to_cols_array(&self) -> [$t; 16] {
                 *self.as_ref()
             }
@@ -106,120 +86,67 @@ macro_rules! impl_mat4 {
             /// Creates a 4x4 matrix from a `[[$t; 4]; 4]` stored in column major
             /// order.  If your data is in row major order you will need to `transpose`
             /// the returned matrix.
-            #[inline]
+            #[inline(always)]
             pub fn from_cols_array_2d(m: &[[$t; 4]; 4]) -> Self {
                 Self($inner::from_cols_array_2d(m))
             }
 
             /// Creates a `[[$t; 4]; 4]` storing data in column major order.
             /// If you require data in row major order `transpose` the matrix first.
-            #[inline]
+            #[inline(always)]
             pub fn to_cols_array_2d(&self) -> [[$t; 4]; 4] {
                 self.0.to_cols_array_2d()
             }
 
             /// Creates a 4x4 homogeneous transformation matrix from the given `scale`,
             /// `rotation` and `translation`.
-            #[inline]
+            #[inline(always)]
             pub fn from_scale_rotation_translation(
                 scale: $vec3,
                 rotation: $quat,
                 translation: $vec3,
             ) -> Self {
-                glam_assert!(rotation.is_normalized());
-                let (x_axis, y_axis, z_axis) = quat_to_axes(rotation);
-                let (scale_x, scale_y, scale_z) = scale.into();
-                Self($inner::from_cols(
-                    x_axis.mul(scale_x).0,
-                    y_axis.mul(scale_y).0,
-                    z_axis.mul(scale_z).0,
-                    translation.extend(1.0).0,
+                Self($inner::from_scale_quaternion_translation(
+                    scale.0,
+                    rotation.0,
+                    translation.0,
                 ))
             }
 
             /// Creates a 4x4 homogeneous transformation matrix from the given `translation`.
-            #[inline]
+            #[inline(always)]
             pub fn from_rotation_translation(rotation: $quat, translation: $vec3) -> Self {
-                glam_assert!(rotation.is_normalized());
-                let (x_axis, y_axis, z_axis) = quat_to_axes(rotation);
-                Self($inner::from_cols(
-                    x_axis.0,
-                    y_axis.0,
-                    z_axis.0,
-                    translation.extend(1.0).0,
+                Self($inner::from_quaternion_translation(
+                    rotation.0,
+                    translation.0,
                 ))
             }
 
             /// Extracts `scale`, `rotation` and `translation` from `self`. The input matrix is expected to
             /// be a 4x4 homogeneous transformation matrix otherwise the output will be invalid.
+            #[inline(always)]
             pub fn to_scale_rotation_translation(&self) -> ($vec3, $quat, $vec3) {
-                let det = self.determinant();
-                glam_assert!(det != 0.0);
-
-                let scale = Vec3A::new(
-                    self.x_axis.length() * det.signum(),
-                    self.y_axis.length(),
-                    self.z_axis.length(),
-                );
-                glam_assert!(scale.cmpne(Vec3A::zero()).all());
-
-                let inv_scale = scale.recip();
-
-                let rotation = $quat::from_rotation_mat3(&Mat3::from_cols(
-                    $vec3::from(Vec3A::from(self.x_axis) * inv_scale.xxx()),
-                    $vec3::from(Vec3A::from(self.y_axis) * inv_scale.yyy()),
-                    $vec3::from(Vec3A::from(self.z_axis) * inv_scale.zzz()),
-                ));
-
-                let translation = self.w_axis.xyz();
-                let scale = $vec3::from(scale);
-
-                (scale, rotation, translation)
+                let (scale, rotation, translation) = self.0.to_scale_quaternion_translation();
+                ($vec3(scale), $quat(rotation), $vec3(translation))
             }
 
             /// Creates a 4x4 homogeneous transformation matrix from the given `rotation`.
-            #[inline]
+            #[inline(always)]
             pub fn from_quat(rotation: $quat) -> Self {
-                glam_assert!(rotation.is_normalized());
-                let (x_axis, y_axis, z_axis) = quat_to_axes(rotation);
-                Self($inner::from_cols(
-                    x_axis.0,
-                    y_axis.0,
-                    z_axis.0,
-                    $vec4::unit_w().0,
-                ))
+                Self($inner::from_quaternion(rotation.0))
             }
 
             /// Creates a 4x4 homogeneous transformation matrix from the given `translation`.
-            #[inline]
+            #[inline(always)]
             pub fn from_translation(translation: $vec3) -> Self {
-                Self($inner::from_cols(
-                    $vec4::unit_x().0,
-                    $vec4::unit_y().0,
-                    $vec4::unit_z().0,
-                    translation.extend(1.0).0,
-                ))
+                Self($inner::from_translation(translation.0))
             }
 
             /// Creates a 4x4 homogeneous transformation matrix containing a rotation
             /// around a normalized rotation `axis` of `angle` (in radians).
-            #[inline]
+            #[inline(always)]
             pub fn from_axis_angle(axis: $vec3, angle: $t) -> Self {
-                glam_assert!(axis.is_normalized());
-                let (sin, cos) = angle.sin_cos();
-                let (x, y, z) = axis.into();
-                let (xsin, ysin, zsin) = (axis * sin).into();
-                let (x2, y2, z2) = (axis * axis).into();
-                let omc = 1.0 - cos;
-                let xyomc = x * y * omc;
-                let xzomc = x * z * omc;
-                let yzomc = y * z * omc;
-                Self($inner::from_cols(
-                    $vec4::new(x2 * omc + cos, xyomc + zsin, xzomc - ysin, 0.0).0,
-                    $vec4::new(xyomc - zsin, y2 * omc + cos, yzomc + xsin, 0.0).0,
-                    $vec4::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos, 0.0).0,
-                    $vec4::unit_w().0,
-                ))
+                Self($inner::from_axis_angle(axis.0, angle))
             }
 
             /// Creates a 4x4 homogeneous transformation matrix containing a rotation
@@ -232,49 +159,29 @@ macro_rules! impl_mat4 {
 
             /// Creates a 4x4 homogeneous transformation matrix containing a rotation
             /// around the x axis of `angle` (in radians).
-            #[inline]
+            #[inline(always)]
             pub fn from_rotation_x(angle: $t) -> Self {
-                let (sina, cosa) = angle.sin_cos();
-                Self($inner::from_cols(
-                    $vec4::unit_x().0,
-                    $vec4::new(0.0, cosa, sina, 0.0).0,
-                    $vec4::new(0.0, -sina, cosa, 0.0).0,
-                    $vec4::unit_w().0,
-                ))
+                Self($inner::from_rotation_x(angle))
             }
 
             /// Creates a 4x4 homogeneous transformation matrix containing a rotation
             /// around the y axis of `angle` (in radians).
-            #[inline]
+            #[inline(always)]
             pub fn from_rotation_y(angle: $t) -> Self {
-                let (sina, cosa) = angle.sin_cos();
-                Self($inner::from_cols(
-                    $vec4::new(cosa, 0.0, -sina, 0.0).0,
-                    $vec4::unit_y().0,
-                    $vec4::new(sina, 0.0, cosa, 0.0).0,
-                    $vec4::unit_w().0,
-                ))
+                Self($inner::from_rotation_y(angle))
             }
 
             /// Creates a 4x4 homogeneous transformation matrix containing a rotation
             /// around the z axis of `angle` (in radians).
-            #[inline]
+            #[inline(always)]
             pub fn from_rotation_z(angle: $t) -> Self {
-                let (sina, cosa) = angle.sin_cos();
-                Self($inner::from_cols(
-                    $vec4::new(cosa, sina, 0.0, 0.0).0,
-                    $vec4::new(-sina, cosa, 0.0, 0.0).0,
-                    $vec4::unit_z().0,
-                    $vec4::unit_w().0,
-                ))
+                Self($inner::from_rotation_z(angle))
             }
 
             /// Creates a 4x4 homogeneous transformation matrix containing the given
             /// non-uniform `scale`.
-            #[inline]
+            #[inline(always)]
             pub fn from_scale(scale: $vec3) -> Self {
-                // Do not panic as long as any component is non-zero
-                glam_assert!(scale.cmpne($vec3::zero()).any());
                 Self($inner::from_scale(scale.0))
             }
 
@@ -451,181 +358,133 @@ macro_rules! impl_mat4 {
                 // }
             }
 
-            /// Creates a left-handed view matrix using a camera position, an up direction, and a camera
-            /// direction.
-            #[inline]
-            // TODO: make public at some point
-            fn look_to_lh(eye: Vec3A, dir: Vec3A, up: Vec3A) -> Self {
-                let f = dir.normalize();
-                let s = up.cross(f).normalize();
-                let u = f.cross(s);
-                let (fx, fy, fz) = f.into();
-                let (sx, sy, sz) = s.into();
-                let (ux, uy, uz) = u.into();
-                $mat4::from_cols(
-                    $vec4::new(sx, ux, fx, 0.0),
-                    $vec4::new(sy, uy, fy, 0.0),
-                    $vec4::new(sz, uz, fz, 0.0),
-                    $vec4::new(-s.dot(eye), -u.dot(eye), -f.dot(eye), 1.0),
-                )
-            }
-
             /// Creates a left-handed view matrix using a camera position, an up direction, and a focal
             /// point.
-            #[inline]
+            #[inline(always)]
             pub fn look_at_lh(eye: $vec3, center: $vec3, up: $vec3) -> Self {
-                let eye = Vec3A::from(eye);
-                let center = Vec3A::from(center);
-                let up = Vec3A::from(up);
-                glam_assert!(up.is_normalized());
-                $mat4::look_to_lh(eye, center - eye, up)
+                Self($inner::look_at_lh(eye.0, center.0, up.0))
             }
 
             /// Creates a right-handed view matrix using a camera position, an up direction, and a focal
             /// point.
-            #[inline]
+            #[inline(always)]
             pub fn look_at_rh(eye: $vec3, center: $vec3, up: $vec3) -> Self {
-                let eye = Vec3A::from(eye);
-                let center = Vec3A::from(center);
-                let up = Vec3A::from(up);
-                glam_assert!(up.is_normalized());
-                $mat4::look_to_lh(eye, eye - center, up)
+                Self($inner::look_at_rh(eye.0, center.0, up.0))
             }
 
             /// Creates a right-handed perspective projection matrix with [-1,1] depth range.
             /// This is the same as the OpenGL `gluPerspective` function.
             /// See https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
+            #[inline(always)]
             pub fn perspective_rh_gl(
                 fov_y_radians: $t,
                 aspect_ratio: $t,
                 z_near: $t,
                 z_far: $t,
             ) -> Self {
-                let inv_length = 1.0 / (z_near - z_far);
-                let f = 1.0 / (0.5 * fov_y_radians).tan();
-                let a = f / aspect_ratio;
-                let b = (z_near + z_far) * inv_length;
-                let c = (2.0 * z_near * z_far) * inv_length;
-                $mat4::from_cols(
-                    $vec4::new(a, 0.0, 0.0, 0.0),
-                    $vec4::new(0.0, f, 0.0, 0.0),
-                    $vec4::new(0.0, 0.0, b, -1.0),
-                    $vec4::new(0.0, 0.0, c, 0.0),
-                )
+                Self($inner::perspective_rh_gl(
+                    fov_y_radians,
+                    aspect_ratio,
+                    z_near,
+                    z_far,
+                ))
             }
 
             /// Creates a left-handed perspective projection matrix with [0,1] depth range.
+            #[inline(always)]
             pub fn perspective_lh(
                 fov_y_radians: $t,
                 aspect_ratio: $t,
                 z_near: $t,
                 z_far: $t,
             ) -> Self {
-                glam_assert!(z_near > 0.0 && z_far > 0.0);
-                let (sin_fov, cos_fov) = (0.5 * fov_y_radians).sin_cos();
-                let h = cos_fov / sin_fov;
-                let w = h / aspect_ratio;
-                let r = z_far / (z_far - z_near);
-                $mat4::from_cols(
-                    $vec4::new(w, 0.0, 0.0, 0.0),
-                    $vec4::new(0.0, h, 0.0, 0.0),
-                    $vec4::new(0.0, 0.0, r, 1.0),
-                    $vec4::new(0.0, 0.0, -r * z_near, 0.0),
-                )
+                Self($inner::perspective_lh(
+                    fov_y_radians,
+                    aspect_ratio,
+                    z_near,
+                    z_far,
+                ))
             }
 
             /// Creates a right-handed perspective projection matrix with [0,1] depth range.
+            #[inline(always)]
             pub fn perspective_rh(
                 fov_y_radians: $t,
                 aspect_ratio: $t,
                 z_near: $t,
                 z_far: $t,
             ) -> Self {
-                glam_assert!(z_near > 0.0 && z_far > 0.0);
-                let (sin_fov, cos_fov) = (0.5 * fov_y_radians).sin_cos();
-                let h = cos_fov / sin_fov;
-                let w = h / aspect_ratio;
-                let r = z_far / (z_near - z_far);
-                $mat4::from_cols(
-                    $vec4::new(w, 0.0, 0.0, 0.0),
-                    $vec4::new(0.0, h, 0.0, 0.0),
-                    $vec4::new(0.0, 0.0, r, -1.0),
-                    $vec4::new(0.0, 0.0, r * z_near, 0.0),
-                )
+                Self($inner::perspective_rh(
+                    fov_y_radians,
+                    aspect_ratio,
+                    z_near,
+                    z_far,
+                ))
             }
 
             /// Creates an infinite left-handed perspective projection matrix with [0,1] depth range.
+            #[inline(always)]
             pub fn perspective_infinite_lh(
                 fov_y_radians: $t,
                 aspect_ratio: $t,
                 z_near: $t,
             ) -> Self {
-                glam_assert!(z_near > 0.0);
-                let (sin_fov, cos_fov) = (0.5 * fov_y_radians).sin_cos();
-                let h = cos_fov / sin_fov;
-                let w = h / aspect_ratio;
-                $mat4::from_cols(
-                    $vec4::new(w, 0.0, 0.0, 0.0),
-                    $vec4::new(0.0, h, 0.0, 0.0),
-                    $vec4::new(0.0, 0.0, 1.0, 1.0),
-                    $vec4::new(0.0, 0.0, -z_near, 0.0),
-                )
+                Self($inner::perspective_infinite_lh(
+                    fov_y_radians,
+                    aspect_ratio,
+                    z_near,
+                ))
             }
 
             /// Creates an infinite left-handed perspective projection matrix with [0,1] depth range.
+            #[inline(always)]
             pub fn perspective_infinite_reverse_lh(
                 fov_y_radians: $t,
                 aspect_ratio: $t,
                 z_near: $t,
             ) -> Self {
-                glam_assert!(z_near > 0.0);
-                let (sin_fov, cos_fov) = (0.5 * fov_y_radians).sin_cos();
-                let h = cos_fov / sin_fov;
-                let w = h / aspect_ratio;
-                $mat4::from_cols(
-                    $vec4::new(w, 0.0, 0.0, 0.0),
-                    $vec4::new(0.0, h, 0.0, 0.0),
-                    $vec4::new(0.0, 0.0, 0.0, 1.0),
-                    $vec4::new(0.0, 0.0, z_near, 0.0),
-                )
+                Self($inner::perspective_infinite_reverse_lh(
+                    fov_y_radians,
+                    aspect_ratio,
+                    z_near,
+                ))
             }
 
             /// Creates an infinite right-handed perspective projection matrix with
             /// [0,1] depth range.
+            #[inline(always)]
             pub fn perspective_infinite_rh(
                 fov_y_radians: $t,
                 aspect_ratio: $t,
                 z_near: $t,
             ) -> Self {
-                let f = 1.0 / (0.5 * fov_y_radians).tan();
-                $mat4::from_cols(
-                    $vec4::new(f / aspect_ratio, 0.0, 0.0, 0.0),
-                    $vec4::new(0.0, f, 0.0, 0.0),
-                    $vec4::new(0.0, 0.0, -1.0, -1.0),
-                    $vec4::new(0.0, 0.0, -z_near, 0.0),
-                )
+                Self($inner::perspective_infinite_rh(
+                    fov_y_radians,
+                    aspect_ratio,
+                    z_near,
+                ))
             }
 
             /// Creates an infinite reverse right-handed perspective projection matrix
             /// with [0,1] depth range.
+            #[inline(always)]
             pub fn perspective_infinite_reverse_rh(
                 fov_y_radians: $t,
                 aspect_ratio: $t,
                 z_near: $t,
             ) -> Self {
-                let f = 1.0 / (0.5 * fov_y_radians).tan();
-                $mat4::from_cols(
-                    $vec4::new(f / aspect_ratio, 0.0, 0.0, 0.0),
-                    $vec4::new(0.0, f, 0.0, 0.0),
-                    $vec4::new(0.0, 0.0, 0.0, -1.0),
-                    $vec4::new(0.0, 0.0, z_near, 0.0),
-                )
+                Self($inner::perspective_infinite_reverse_rh(
+                    fov_y_radians,
+                    aspect_ratio,
+                    z_near,
+                ))
             }
 
             /// Creates a right-handed orthographic projection matrix with [-1,1] depth
             /// range.  This is the same as the OpenGL `glOrtho` function in OpenGL.
             /// See
             /// https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glOrtho.xml
+            #[inline(always)]
             pub fn orthographic_rh_gl(
                 left: $t,
                 right: $t,
@@ -634,22 +493,13 @@ macro_rules! impl_mat4 {
                 near: $t,
                 far: $t,
             ) -> Self {
-                let a = 2.0 / (right - left);
-                let b = 2.0 / (top - bottom);
-                let c = -2.0 / (far - near);
-                let tx = -(right + left) / (right - left);
-                let ty = -(top + bottom) / (top - bottom);
-                let tz = -(far + near) / (far - near);
-
-                $mat4::from_cols(
-                    $vec4::new(a, 0.0, 0.0, 0.0),
-                    $vec4::new(0.0, b, 0.0, 0.0),
-                    $vec4::new(0.0, 0.0, c, 0.0),
-                    $vec4::new(tx, ty, tz, 1.0),
-                )
+                Self($inner::orthographic_rh_gl(
+                    left, right, bottom, top, near, far,
+                ))
             }
 
             /// Creates a left-handed orthographic projection matrix with [0,1] depth range.
+            #[inline(always)]
             pub fn orthographic_lh(
                 left: $t,
                 right: $t,
@@ -658,23 +508,11 @@ macro_rules! impl_mat4 {
                 near: $t,
                 far: $t,
             ) -> Self {
-                let rcp_width = 1.0 / (right - left);
-                let rcp_height = 1.0 / (top - bottom);
-                let r = 1.0 / (far - near);
-                $mat4::from_cols(
-                    $vec4::new(rcp_width + rcp_width, 0.0, 0.0, 0.0),
-                    $vec4::new(0.0, rcp_height + rcp_height, 0.0, 0.0),
-                    $vec4::new(0.0, 0.0, r, 0.0),
-                    $vec4::new(
-                        -(left + right) * rcp_width,
-                        -(top + bottom) * rcp_height,
-                        -r * near,
-                        1.0,
-                    ),
-                )
+                Self($inner::orthographic_lh(left, right, bottom, top, near, far))
             }
 
             /// Creates a right-handed orthographic projection matrix with [0,1] depth range.
+            #[inline(always)]
             pub fn orthographic_rh(
                 left: $t,
                 right: $t,
@@ -683,48 +521,35 @@ macro_rules! impl_mat4 {
                 near: $t,
                 far: $t,
             ) -> Self {
-                let rcp_width = 1.0 / (right - left);
-                let rcp_height = 1.0 / (top - bottom);
-                let r = 1.0 / (near - far);
-                $mat4::from_cols(
-                    $vec4::new(rcp_width + rcp_width, 0.0, 0.0, 0.0),
-                    $vec4::new(0.0, rcp_height + rcp_height, 0.0, 0.0),
-                    $vec4::new(0.0, 0.0, r, 0.0),
-                    $vec4::new(
-                        -(left + right) * rcp_width,
-                        -(top + bottom) * rcp_height,
-                        r * near,
-                        1.0,
-                    ),
-                )
+                Self($inner::orthographic_rh(left, right, bottom, top, near, far))
             }
 
             /// Transforms a 4D vector.
-            #[inline]
+            #[inline(always)]
             pub fn mul_vec4(&self, other: $vec4) -> $vec4 {
                 $vec4(self.0.mul_vector(&other.0))
             }
 
             /// Multiplies two 4x4 matrices.
-            #[inline]
+            #[inline(always)]
             pub fn mul_mat4(&self, other: &Self) -> Self {
                 Self(self.0.mul_matrix(&other.0))
             }
 
             /// Adds two 4x4 matrices.
-            #[inline]
+            #[inline(always)]
             pub fn add_mat4(&self, other: &Self) -> Self {
                 Self(self.0.add_matrix(&other.0))
             }
 
             /// Subtracts two 4x4 matrices.
-            #[inline]
+            #[inline(always)]
             pub fn sub_mat4(&self, other: &Self) -> Self {
                 Self(self.0.sub_matrix(&other.0))
             }
 
             /// Multiplies this matrix by a scalar value.
-            #[inline]
+            #[inline(always)]
             pub fn mul_scalar(&self, other: $t) -> Self {
                 Self(self.0.mul_scalar(other))
             }
@@ -803,7 +628,7 @@ macro_rules! impl_mat4 {
 
         impl Add<$mat4> for $mat4 {
             type Output = Self;
-            #[inline]
+            #[inline(always)]
             fn add(self, other: Self) -> Self {
                 self.add_mat4(&other)
             }
@@ -811,7 +636,7 @@ macro_rules! impl_mat4 {
 
         impl Sub<$mat4> for $mat4 {
             type Output = Self;
-            #[inline]
+            #[inline(always)]
             fn sub(self, other: Self) -> Self {
                 self.sub_mat4(&other)
             }
@@ -819,7 +644,7 @@ macro_rules! impl_mat4 {
 
         impl Mul<$mat4> for $mat4 {
             type Output = Self;
-            #[inline]
+            #[inline(always)]
             fn mul(self, other: Self) -> Self {
                 self.mul_mat4(&other)
             }
@@ -827,7 +652,7 @@ macro_rules! impl_mat4 {
 
         impl Mul<$vec4> for $mat4 {
             type Output = $vec4;
-            #[inline]
+            #[inline(always)]
             fn mul(self, other: $vec4) -> $vec4 {
                 self.mul_vec4(other)
             }
@@ -835,7 +660,7 @@ macro_rules! impl_mat4 {
 
         impl Mul<$mat4> for $t {
             type Output = $mat4;
-            #[inline]
+            #[inline(always)]
             fn mul(self, other: $mat4) -> $mat4 {
                 other.mul_scalar(self)
             }
@@ -843,7 +668,7 @@ macro_rules! impl_mat4 {
 
         impl Mul<$t> for $mat4 {
             type Output = Self;
-            #[inline]
+            #[inline(always)]
             fn mul(self, other: $t) -> Self {
                 self.mul_scalar(other)
             }

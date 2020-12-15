@@ -1,6 +1,7 @@
 use crate::core::{
     storage::{Vector2x2, Vector4x4, XYZx3, XY, XYZ, XYZW},
     traits::{
+        quaternion::Quaternion,
         scalar::{FloatEx, NumEx},
         vector::*,
     },
@@ -261,18 +262,18 @@ pub trait FloatMatrix3x3<T: FloatEx>: Matrix3x3<T> {
             T::ZERO, T::ZERO, T::ONE)
     }
 
-    #[rustfmt::skip]
-    #[inline]
-    fn from_scale(scale: XYZ<T>) -> Self {
-        // TODO: should have a affine 2D scale and a 3d scale?
-        // Do not panic as long as any component is non-zero
-        glam_assert!(scale.cmpne(XYZ::ZERO).any());
-        Self::new(
-            scale.x, T::ZERO, T::ZERO,
-            T::ZERO, scale.y, T::ZERO,
-            T::ZERO, T::ZERO, scale.z,
-        )
-    }
+    // #[rustfmt::skip]
+    // #[inline]
+    // fn from_scale(scale: XYZ<T>) -> Self {
+    //     // TODO: should have a affine 2D scale and a 3d scale?
+    //     // Do not panic as long as any component is non-zero
+    //     glam_assert!(scale.cmpne(XYZ::ZERO).any());
+    //     Self::new(
+    //         scale.x, T::ZERO, T::ZERO,
+    //         T::ZERO, scale.y, T::ZERO,
+    //         T::ZERO, T::ZERO, scale.z,
+    //     )
+    // }
 
     fn transform_point2(&self, other: XY<T>) -> XY<T>;
     fn transform_vector2(&self, other: XY<T>) -> XY<T>;
@@ -362,14 +363,25 @@ pub trait Matrix4x4<T: NumEx, V4: Vector4<T>>: Matrix<T> {
         ]
     }
 
-    #[rustfmt::skip]
     #[inline(always)]
     fn from_scale(scale: XYZ<T>) -> Self {
-        Self::new(
-            scale.x, T::ZERO, T::ZERO, T::ZERO,
-            T::ZERO, scale.y, T::ZERO, T::ZERO,
-            T::ZERO, T::ZERO, scale.z, T::ZERO,
-            T::ZERO, T::ZERO, T::ZERO, T::ONE,
+        // Do not panic as long as any component is non-zero
+        glam_assert!(scale.cmpne($vec3::zero()).any());
+        Self::from_cols(
+            V4::new(scale.x, T::ZERO, T::ZERO, T::ZERO),
+            V4::new(T::ZERO, scale.y, T::ZERO, T::ZERO),
+            V4::new(T::ZERO, T::ZERO, scale.z, T::ZERO),
+            V4::UNIT_W,
+        )
+    }
+
+    #[inline(always)]
+    fn from_translation(translation: XYZ<T>) -> Self {
+        Self::from_cols(
+            V4::UNIT_X,
+            V4::UNIT_Y,
+            V4::UNIT_Z,
+            V4::new(translation.x, translation.y, translation.z, T::ONE),
         )
     }
 
@@ -428,8 +440,175 @@ pub trait Matrix4x4<T: NumEx, V4: Vector4<T>>: Matrix<T> {
     }
 }
 
-pub trait FloatMatrix4x4<T: FloatEx, V4: FloatVector4<T>>: Matrix4x4<T, V4> {
+pub trait FloatMatrix4x4<T: FloatEx, V4: FloatVector4<T> + Quaternion<T>>:
+    Matrix4x4<T, V4>
+{
     fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool;
+
+    #[inline]
+    fn quaternion_to_axes(rotation: V4) -> (V4, V4, V4) {
+        glam_assert!(rotation.is_normalized());
+        let (x, y, z, w) = rotation.into_tuple();
+        let x2 = x + x;
+        let y2 = y + y;
+        let z2 = z + z;
+        let xx = x * x2;
+        let xy = x * y2;
+        let xz = x * z2;
+        let yy = y * y2;
+        let yz = y * z2;
+        let zz = z * z2;
+        let wx = w * x2;
+        let wy = w * y2;
+        let wz = w * z2;
+
+        let x_axis = V4::new(T::ONE - (yy + zz), xy + wz, xz - wy, T::ZERO);
+        let y_axis = V4::new(xy - wz, T::ONE - (xx + zz), yz + wx, T::ZERO);
+        let z_axis = V4::new(xz + wy, yz - wx, T::ONE - (xx + yy), T::ZERO);
+        (x_axis, y_axis, z_axis)
+    }
+
+    #[inline]
+    fn from_quaternion(rotation: V4) -> Self {
+        glam_assert!(rotation.is_normalized());
+        let (x_axis, y_axis, z_axis) = Self::quaternion_to_axes(rotation);
+        Self::from_cols(x_axis, y_axis, z_axis, V4::UNIT_W)
+    }
+
+    fn to_scale_quaternion_translation(&self) -> (XYZ<T>, V4, XYZ<T>) {
+        let det = self.determinant();
+        glam_assert!(det != T::ZERO);
+
+        let scale: XYZ<T> = Vector3::new(
+            self.x_axis().length() * det.signum(),
+            self.y_axis().length(),
+            self.z_axis().length(),
+        );
+
+        glam_assert!(scale.cmpne(XYZ::zero()).all());
+
+        let inv_scale = scale.recip();
+
+        let rotation = Quaternion::from_rotation_axes(
+            self.x_axis().mul_scalar(inv_scale.x).into_xyz(),
+            self.y_axis().mul_scalar(inv_scale.y).into_xyz(),
+            self.z_axis().mul_scalar(inv_scale.z).into_xyz(),
+        );
+
+        let translation = self.w_axis().into_xyz();
+
+        (scale, rotation, translation)
+    }
+
+    #[inline]
+    fn from_scale_quaternion_translation(scale: XYZ<T>, rotation: V4, translation: XYZ<T>) -> Self {
+        glam_assert!(rotation.is_normalized());
+        let (x_axis, y_axis, z_axis) = Self::quaternion_to_axes(rotation);
+        Self::from_cols(
+            x_axis.mul_scalar(scale.x),
+            y_axis.mul_scalar(scale.y),
+            z_axis.mul_scalar(scale.z),
+            V4::from_xyz(translation, T::ONE),
+        )
+    }
+
+    #[inline]
+    fn from_quaternion_translation(rotation: V4, translation: XYZ<T>) -> Self {
+        glam_assert!(rotation.is_normalized());
+        let (x_axis, y_axis, z_axis) = Self::quaternion_to_axes(rotation);
+        Self::from_cols(x_axis, y_axis, z_axis, V4::from_xyz(translation, T::ONE))
+    }
+
+    #[inline]
+    fn from_axis_angle(axis: XYZ<T>, angle: T) -> Self {
+        glam_assert!(axis.is_normalized());
+        let (sin, cos) = angle.sin_cos();
+        let axis_sin = axis.mul_scalar(sin);
+        let axis_sq = axis.mul(axis);
+        let omc = T::ONE - cos;
+        let xyomc = axis.x * axis.y * omc;
+        let xzomc = axis.x * axis.z * omc;
+        let yzomc = axis.y * axis.z * omc;
+        Self::from_cols(
+            V4::new(
+                axis_sq.x * omc + cos,
+                xyomc + axis_sin.z,
+                xzomc - axis_sin.y,
+                T::ZERO,
+            ),
+            V4::new(
+                xyomc - axis_sin.z,
+                axis_sq.y * omc + cos,
+                yzomc + axis_sin.x,
+                T::ZERO,
+            ),
+            V4::new(
+                xzomc + axis_sin.y,
+                yzomc - axis_sin.x,
+                axis_sq.z * omc + cos,
+                T::ZERO,
+            ),
+            V4::UNIT_W,
+        )
+    }
+
+    #[inline]
+    fn from_rotation_x(angle: T) -> Self {
+        let (sina, cosa) = angle.sin_cos();
+        Self::from_cols(
+            V4::UNIT_X,
+            V4::new(T::ZERO, cosa, sina, T::ZERO),
+            V4::new(T::ZERO, -sina, cosa, T::ZERO),
+            V4::UNIT_W,
+        )
+    }
+
+    #[inline]
+    fn from_rotation_y(angle: T) -> Self {
+        let (sina, cosa) = angle.sin_cos();
+        Self::from_cols(
+            V4::new(cosa, T::ZERO, -sina, T::ZERO),
+            V4::UNIT_Y,
+            V4::new(sina, T::ZERO, cosa, T::ZERO),
+            V4::UNIT_W,
+        )
+    }
+
+    #[inline]
+    fn from_rotation_z(angle: T) -> Self {
+        let (sina, cosa) = angle.sin_cos();
+        Self::from_cols(
+            V4::new(cosa, sina, T::ZERO, T::ZERO),
+            V4::new(-sina, cosa, T::ZERO, T::ZERO),
+            V4::UNIT_Z,
+            V4::UNIT_W,
+        )
+    }
+
+    #[inline]
+    fn look_to_lh(eye: XYZ<T>, dir: XYZ<T>, up: XYZ<T>) -> Self {
+        let f = dir.normalize();
+        let s = up.cross(f).normalize();
+        let u = f.cross(s);
+        Self::from_cols(
+            V4::new(s.x, u.x, f.x, T::ZERO),
+            V4::new(s.y, u.y, f.y, T::ZERO),
+            V4::new(s.z, u.z, f.z, T::ZERO),
+            V4::new(-s.dot(eye), -u.dot(eye), -f.dot(eye), T::ONE),
+        )
+    }
+
+    #[inline]
+    fn look_at_lh(eye: XYZ<T>, center: XYZ<T>, up: XYZ<T>) -> Self {
+        glam_assert!(up.is_normalized());
+        Self::look_to_lh(eye, center.sub(eye), up)
+    }
+
+    #[inline]
+    fn look_at_rh(eye: XYZ<T>, center: XYZ<T>, up: XYZ<T>) -> Self {
+        glam_assert!(up.is_normalized());
+        Self::look_to_lh(eye, eye.sub(center), up)
+    }
 
     fn inverse(&self) -> Self;
 }

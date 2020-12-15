@@ -248,10 +248,14 @@ impl Vector<f32> for __m128 {
     #[inline(always)]
     fn mul_add(self, a: Self, b: Self) -> Self {
         #[cfg(target_feature = "fma")]
-        unsafe { _mm_fmadd_ps(a, b, c) }
+        unsafe {
+            _mm_fmadd_ps(a, b, c)
+        }
 
         #[cfg(not(target_feature = "fma"))]
-        unsafe { _mm_add_ps(_mm_mul_ps(self, a), b) }
+        unsafe {
+            _mm_add_ps(_mm_mul_ps(self, a), b)
+        }
     }
 
     #[inline(always)]
@@ -995,7 +999,7 @@ fn test_sse2_m128_sin() {
     use core::f32::consts::PI;
 
     fn test_sse2_m128_sin_angle(a: f32) {
-        let v = unsafe { m128_sin(_mm_set_ps1(a))};
+        let v = unsafe { m128_sin(_mm_set_ps1(a)) };
         let v = Vector4::deref(&v);
         let a_sin = a.sin();
         // dbg!((a, a_sin, v));
@@ -1011,4 +1015,3 @@ fn test_sse2_m128_sin() {
         a += step;
     }
 }
-

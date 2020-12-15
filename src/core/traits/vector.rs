@@ -86,7 +86,7 @@ pub trait Vector<T>: Sized + Copy + Clone {
     fn max(self, other: Self) -> Self;
 }
 
-pub trait Vector2<T>: Vector<T> {
+pub trait Vector2<T>: Vector<T> + Vector2Const {
     fn new(x: T, y: T) -> Self;
     fn from_slice_unaligned(slice: &[T]) -> Self;
     fn write_to_slice_unaligned(self, slice: &mut [T]);
@@ -110,13 +110,25 @@ pub trait Vector2<T>: Vector<T> {
     }
 }
 
-pub trait Vector3<T>: Vector<T> {
+pub trait Vector3<T>: Vector<T> + Vector3Const {
     fn new(x: T, y: T, z: T) -> Self;
     fn from_slice_unaligned(slice: &[T]) -> Self;
     fn write_to_slice_unaligned(self, slice: &mut [T]);
     fn deref(&self) -> &XYZ<T>;
     fn deref_mut(&mut self) -> &mut XYZ<T>;
+
+    #[inline(always)]
+    fn from_xy(v2: XY<T>, z: T) -> Self {
+        Self::new(v2.x, v2.y, z)
+    }
+
+    #[inline(always)]
+    fn from_xyzw(v4: XYZW<T>) -> Self {
+        Self::new(v4.x, v4.y, v4.z)
+    }
+
     fn into_xy(self) -> XY<T>;
+
     fn into_xyzw(self, w: T) -> XYZW<T>;
     fn from_array(a: [T; 3]) -> Self;
     fn into_array(self) -> [T; 3];
@@ -136,7 +148,7 @@ pub trait Vector3<T>: Vector<T> {
     fn cross(self, other: Self) -> Self;
 }
 
-pub trait Vector4<T>: Vector<T> {
+pub trait Vector4<T>: Vector<T> + Vector4Const {
     fn new(x: T, y: T, z: T, w: T) -> Self;
     fn splat_x(self) -> Self;
     fn splat_y(self) -> Self;
@@ -146,6 +158,17 @@ pub trait Vector4<T>: Vector<T> {
     fn write_to_slice_unaligned(self, slice: &mut [T]);
     fn deref(&self) -> &XYZW<T>;
     fn deref_mut(&mut self) -> &mut XYZW<T>;
+
+    #[inline(always)]
+    fn from_xy(v2: XY<T>, z: T, w: T) -> Self {
+        Self::new(v2.x, v2.y, z, w)
+    }
+
+    #[inline(always)]
+    fn from_xyz(v3: XYZ<T>, w: T) -> Self {
+        Self::new(v3.x, v3.y, v3.z, w)
+    }
+
     fn into_xy(self) -> XY<T>;
     fn into_xyz(self) -> XYZ<T>;
     fn from_array(a: [T; 4]) -> Self;
