@@ -8,15 +8,16 @@ use core::mem::MaybeUninit;
 use crate::{
     const_m128,
     core::{
-        storage::{Align16, Vector2x2, Vector4x4, XY, XYZW},
+        storage::{Align16, Vector2x2, Vector4x4, XY, XYZ, XYZW},
         traits::{
             matrix::{FloatMatrix2x2, FloatMatrix4x4, Matrix, Matrix2x2, Matrix4x4, MatrixConst},
             projection::ProjectionMatrix,
-            vector::{FloatVector4, Vector4, Vector4Const},
+            vector::{FloatVector, FloatVector4, Vector, Vector4, Vector4Const},
         },
     },
 };
 
+// __m128 as a Matrix2x2
 impl MatrixConst for __m128 {
     const ZERO: __m128 = const_m128!([0.0, 0.0, 0.0, 0.0]);
     const IDENTITY: __m128 = const_m128!([1.0, 0.0, 0.0, 1.0]);
@@ -31,6 +32,11 @@ impl Matrix2x2<f32, XY<f32>> for __m128 {
     }
 
     #[inline(always)]
+    fn from_cols(x_axis: XY<f32>, y_axis: XY<f32>) -> Self {
+        Matrix2x2::new(x_axis.x, x_axis.y, y_axis.x, y_axis.y)
+    }
+
+    #[inline(always)]
     fn deref(&self) -> &Vector2x2<XY<f32>> {
         unsafe { &*(self as *const Self as *const Vector2x2<XY<f32>>) }
     }
@@ -39,26 +45,6 @@ impl Matrix2x2<f32, XY<f32>> for __m128 {
     fn deref_mut(&mut self) -> &mut Vector2x2<XY<f32>> {
         unsafe { &mut *(self as *mut Self as *mut Vector2x2<XY<f32>>) }
     }
-
-    // #[inline(always)]
-    // fn to_cols_array(&self) -> [f32; 4] {
-    //     // TODO: MaybeUninit
-    //     [self.x_axis.x, self.x_axis.y, self.y_axis.x, self.y_axis.y]
-    // }
-
-    // #[inline(always)]
-    // fn to_cols_array_2d(&self) -> [[f32; 2]; 2] {
-    //     // TODO: MaybeUninit
-    //     [
-    //         [self.x_axis.x, self.x_axis.y],
-    //         [self.y_axis.x, self.y_axis.y],
-    //     ]
-    // }
-
-    // #[inline(always)]
-    // fn from_scale(scale: XY<f32>) -> Self {
-    //     Self::new(scale.x, 0.0, 0.0, scale.y)
-    // }
 
     #[inline]
     fn determinant(&self) -> f32 {
@@ -153,19 +139,14 @@ impl MatrixConst for Vector4x4<__m128> {
 impl Matrix<f32> for Vector4x4<__m128> {}
 
 impl Matrix4x4<f32, __m128> for Vector4x4<__m128> {
-    #[rustfmt::skip]
-    fn new(
-        m00: f32, m01: f32, m02: f32, m03: f32,
-        m10: f32, m11: f32, m12: f32, m13: f32,
-        m20: f32, m21: f32, m22: f32, m23: f32,
-        m30: f32, m31: f32, m32: f32, m33: f32,
-        ) -> Self {
-        Self::from_cols(
-            Vector4::new(m00, m01, m02, m03),
-            Vector4::new(m10, m11, m12, m13),
-            Vector4::new(m20, m21, m22, m23),
-            Vector4::new(m30, m31, m32, m33),
-        )
+    #[inline(always)]
+    fn from_cols(x_axis: __m128, y_axis: __m128, z_axis: __m128, w_axis: __m128) -> Self {
+        Self {
+            x_axis,
+            y_axis,
+            z_axis,
+            w_axis,
+        }
     }
 
     #[inline(always)]
@@ -196,64 +177,6 @@ impl Matrix4x4<f32, __m128> for Vector4x4<__m128> {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Vector4x4<XYZW<f32>> {
         unsafe { &mut *(self as *mut Self as *mut Vector4x4<XYZW<f32>>) }
-    }
-
-    #[rustfmt::skip]
-    #[inline(always)]
-    fn from_cols(x_axis: __m128, y_axis: __m128, z_axis: __m128, w_axis: __m128) -> Self {
-        Self {
-            x_axis, y_axis, z_axis, w_axis
-        }
-    }
-
-    #[rustfmt::skip]
-    #[inline(always)]
-    fn from_cols_array(m: &[f32; 16]) -> Self {
-        Self::new(
-             m[0],  m[1],  m[2],  m[3],
-             m[4],  m[5],  m[6],  m[7],
-             m[8],  m[9], m[10], m[11],
-            m[12], m[13], m[14], m[15])
-    }
-
-    #[rustfmt::skip]
-    #[inline(always)]
-    fn to_cols_array(&self) -> [f32; 16] {
-        let m = self.deref();
-        let x_axis = m.x_axis.deref();
-        let y_axis = m.y_axis.deref();
-        let z_axis = m.z_axis.deref();
-        let w_axis = m.w_axis.deref();
-        [
-            x_axis.x, x_axis.y, x_axis.z, x_axis.w,
-            y_axis.x, y_axis.y, y_axis.z, y_axis.w,
-            z_axis.x, z_axis.y, z_axis.z, z_axis.w,
-            w_axis.x, w_axis.y, w_axis.z, w_axis.w,
-        ]
-    }
-
-    #[inline(always)]
-    fn from_cols_array_2d(m: &[[f32; 4]; 4]) -> Self {
-        Self::new(
-            m[0][0], m[0][1], m[0][2], m[0][3], m[1][0], m[1][1], m[1][2], m[1][3], m[2][0],
-            m[2][1], m[2][2], m[2][3], m[3][0], m[3][1], m[3][2], m[3][3],
-        )
-    }
-
-    #[rustfmt::skip]
-    #[inline(always)]
-    fn to_cols_array_2d(&self) -> [[f32; 4]; 4] {
-        let m = self.deref();
-        let x_axis = m.x_axis.deref();
-        let y_axis = m.y_axis.deref();
-        let z_axis = m.z_axis.deref();
-        let w_axis = m.w_axis.deref();
-        [
-            [x_axis.x, x_axis.y, x_axis.z, x_axis.w],
-            [y_axis.x, y_axis.y, y_axis.z, y_axis.w],
-            [z_axis.x, z_axis.y, z_axis.z, z_axis.w],
-            [w_axis.x, w_axis.y, w_axis.z, w_axis.w],
-        ]
     }
 
     fn determinant(&self) -> f32 {
@@ -313,12 +236,7 @@ impl Matrix4x4<f32, __m128> for Vector4x4<__m128> {
 }
 
 impl FloatMatrix4x4<f32, __m128> for Vector4x4<__m128> {
-    fn abs_diff_eq(&self, other: &Self, max_abs_diff: f32) -> bool {
-        FloatVector4::abs_diff_eq(self.x_axis, other.x_axis, max_abs_diff)
-            && FloatVector4::abs_diff_eq(self.y_axis, other.y_axis, max_abs_diff)
-            && FloatVector4::abs_diff_eq(self.z_axis, other.z_axis, max_abs_diff)
-            && FloatVector4::abs_diff_eq(self.w_axis, other.w_axis, max_abs_diff)
-    }
+    type SIMDVector3 = __m128;
 
     fn inverse(&self) -> Self {
         unsafe {
@@ -460,6 +378,36 @@ impl FloatMatrix4x4<f32, __m128> for Vector4x4<__m128> {
                 w_axis: _mm_mul_ps(inv3, rcp0),
             }
         }
+    }
+
+    #[inline]
+    fn transform_point3(&self, other: XYZ<f32>) -> XYZ<f32> {
+        // SIMDFloatMatrix4x4::transform_point3_simd(self, other.into()).into()
+        self.transform_float4_as_point3(other.into()).into()
+    }
+
+    #[inline]
+    fn transform_vector3(&self, other: XYZ<f32>) -> XYZ<f32> {
+        // SIMDFloatMatrix4x4::transform_vector3_simd(self, other.into()).into()
+        self.transform_float4_as_vector3(other.into()).into()
+    }
+
+    #[inline]
+    fn transform_float4_as_point3(&self, other: __m128) -> __m128 {
+        let mut res = self.x_axis.mul(other.splat_x());
+        res = self.y_axis.mul_add(other.splat_y(), res);
+        res = self.z_axis.mul_add(other.splat_z(), res);
+        res = self.w_axis.add(res);
+        res = res.mul(res.splat_w().recip());
+        res
+    }
+
+    #[inline]
+    fn transform_float4_as_vector3(&self, other: __m128) -> __m128 {
+        let mut res = self.x_axis.mul(other.splat_x());
+        res = self.y_axis.mul_add(other.splat_y(), res);
+        res = self.z_axis.mul_add(other.splat_z(), res);
+        res
     }
 }
 

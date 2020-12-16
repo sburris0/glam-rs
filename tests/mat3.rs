@@ -10,13 +10,6 @@ macro_rules! impl_mat3_tests {
         const ZERO: [[$t; 3]; 3] = [[0.0; 3]; 3];
 
         #[test]
-        fn test_mat3_align() {
-            use std::mem;
-            assert_eq!(36, mem::size_of::<$mat3>());
-            assert_eq!(4, mem::align_of::<$mat3>());
-        }
-
-        #[test]
         fn test_mat3_identity() {
             let identity = $mat3::identity();
             assert_eq!(IDENTITY, identity.to_cols_array_2d());
@@ -47,15 +40,15 @@ macro_rules! impl_mat3_tests {
             let a = $mat3::from_cols_array_2d(&[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
             assert_eq!(MATRIX, a.to_cols_array_2d());
             let b = $mat3::from_cols(
-                vec3(1.0, 2.0, 3.0),
-                vec3(4.0, 5.0, 6.0),
-                vec3(7.0, 8.0, 9.0),
+                $newvec3(1.0, 2.0, 3.0),
+                $newvec3(4.0, 5.0, 6.0),
+                $newvec3(7.0, 8.0, 9.0),
             );
             assert_eq!(a, b);
-            let c = mat3(
-                vec3(1.0, 2.0, 3.0),
-                vec3(4.0, 5.0, 6.0),
-                vec3(7.0, 8.0, 9.0),
+            let c = $newmat3(
+                $newvec3(1.0, 2.0, 3.0),
+                $newvec3(4.0, 5.0, 6.0),
+                $newvec3(7.0, 8.0, 9.0),
             );
             assert_eq!(a, c);
             let d = b.to_cols_array();
@@ -137,15 +130,15 @@ macro_rules! impl_mat3_tests {
 
         #[test]
         fn test_mat3_transpose() {
-            let m = mat3(
-                vec3(1.0, 2.0, 3.0),
-                vec3(4.0, 5.0, 6.0),
-                vec3(7.0, 8.0, 9.0),
+            let m = $newmat3(
+                $newvec3(1.0, 2.0, 3.0),
+                $newvec3(4.0, 5.0, 6.0),
+                $newvec3(7.0, 8.0, 9.0),
             );
             let mt = m.transpose();
-            assert_eq!(mt.x_axis, vec3(1.0, 4.0, 7.0));
-            assert_eq!(mt.y_axis, vec3(2.0, 5.0, 8.0));
-            assert_eq!(mt.z_axis, vec3(3.0, 6.0, 9.0));
+            assert_eq!(mt.x_axis, $newvec3(1.0, 4.0, 7.0));
+            assert_eq!(mt.y_axis, $newvec3(2.0, 5.0, 8.0));
+            assert_eq!(mt.z_axis, $newvec3(3.0, 6.0, 9.0));
         }
 
         #[test]
@@ -157,7 +150,7 @@ macro_rules! impl_mat3_tests {
             assert_eq!(1.0, $mat3::from_rotation_z(deg(270.0)).determinant());
             assert_eq!(
                 2.0 * 2.0 * 2.0,
-                $mat3::from_scale(vec3(2.0, 2.0, 2.0)).determinant()
+                $mat3::from_scale($newvec3(2.0, 2.0, 2.0)).determinant()
             );
         }
 
@@ -175,7 +168,7 @@ macro_rules! impl_mat3_tests {
             assert_approx_eq!($mat3::identity(), rotz * rotz_inv);
             assert_approx_eq!($mat3::identity(), rotz_inv * rotz);
 
-            let scale = $mat3::from_scale(vec3(4.0, 5.0, 6.0));
+            let scale = $mat3::from_scale($newvec3(4.0, 5.0, 6.0));
             let scale_inv = scale.inverse();
             // assert_ne!(None, scale_inv);
             // let scale_inv = scale_inv.unwrap();
@@ -211,45 +204,6 @@ macro_rules! impl_mat3_tests {
         fn test_mat3_fmt() {
             let a = $mat3::from_cols_array_2d(&MATRIX);
             assert_eq!(format!("{}", a), "[[1, 2, 3], [4, 5, 6], [7, 8, 9]]");
-        }
-
-        #[cfg(feature = "serde")]
-        #[test]
-        fn test_mat3_serde() {
-            let a = $mat3::from_cols(
-                vec3(1.0, 2.0, 3.0),
-                vec3(4.0, 5.0, 6.0),
-                vec3(7.0, 8.0, 9.0),
-            );
-            let serialized = serde_json::to_string(&a).unwrap();
-            assert_eq!(serialized, "[1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0]");
-            let deserialized = serde_json::from_str(&serialized).unwrap();
-            assert_eq!(a, deserialized);
-            let deserialized = serde_json::from_str::<$mat3>("[]");
-            assert!(deserialized.is_err());
-            let deserialized = serde_json::from_str::<$mat3>("[1.0]");
-            assert!(deserialized.is_err());
-            let deserialized = serde_json::from_str::<$mat3>("[1.0,2.0]");
-            assert!(deserialized.is_err());
-            let deserialized = serde_json::from_str::<$mat3>("[1.0,2.0,3.0]");
-            assert!(deserialized.is_err());
-            let deserialized = serde_json::from_str::<$mat3>("[1.0,2.0,3.0,4.0,5.0]");
-            assert!(deserialized.is_err());
-            let deserialized =
-                serde_json::from_str::<$mat3>("[[1.0,2.0,3.0],[4.0,5.0,6.0],[7.0,8.0,9.0]]");
-            assert!(deserialized.is_err());
-        }
-
-        #[cfg(feature = "rand")]
-        #[test]
-        fn test_mat3_rand() {
-            use rand::{Rng, SeedableRng};
-            use rand_xoshiro::Xoshiro256Plus;
-            let mut rng1 = Xoshiro256Plus::seed_from_u64(0);
-            let a = $mat3::from_cols_array(&rng1.gen::<[$t; 9]>());
-            let mut rng2 = Xoshiro256Plus::seed_from_u64(0);
-            let b = rng2.gen::<$mat3>();
-            assert_eq!(a, b);
         }
 
         #[cfg(feature = "std")]
@@ -298,4 +252,18 @@ mod mat3 {
     }
 
     impl_mat3_tests!(mat3, Mat3, vec3, Vec3, Vec2, f32);
+}
+
+mod dmat3 {
+    use super::support::deg;
+    use glam::{dmat3, dvec3, DMat3, DVec2, DVec3};
+
+    #[test]
+    fn test_align() {
+        use std::mem;
+        assert_eq!(72, mem::size_of::<DMat3>());
+        assert_eq!(8, mem::align_of::<DMat3>());
+    }
+
+    impl_mat3_tests!(dmat3, DMat3, dvec3, DVec3, DVec2, f64);
 }

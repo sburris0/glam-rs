@@ -77,6 +77,28 @@ fn test_mat2_rand() {
 }
 
 #[test]
+fn test_mat3_rand() {
+    use rand::{Rng, SeedableRng};
+    use rand_xoshiro::Xoshiro256Plus;
+    let mut rng1 = Xoshiro256Plus::seed_from_u64(0);
+    let a = Mat3::from_cols_array(&rng1.gen::<[f32; 9]>());
+    let mut rng2 = Xoshiro256Plus::seed_from_u64(0);
+    let b = rng2.gen::<Mat3>();
+    assert_eq!(a, b);
+}
+
+#[test]
+fn test_mat4_rand() {
+    use rand::{Rng, SeedableRng};
+    use rand_xoshiro::Xoshiro256Plus;
+    let mut rng1 = Xoshiro256Plus::seed_from_u64(0);
+    let a = Mat4::from_cols_array(&rng1.gen::<[f32; 16]>());
+    let mut rng2 = Xoshiro256Plus::seed_from_u64(0);
+    let b = rng2.gen::<Mat4>();
+    assert_eq!(a, b);
+}
+
+#[test]
 fn test_quat_rand() {
     use rand::{Rng, SeedableRng};
     use rand_xoshiro::Xoshiro256Plus;

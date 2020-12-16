@@ -88,6 +88,8 @@ pub trait Vector<T>: Sized + Copy + Clone {
 
 pub trait Vector2<T>: Vector<T> + Vector2Const {
     fn new(x: T, y: T) -> Self;
+    fn splat_x(self) -> Self;
+    fn splat_y(self) -> Self;
     fn from_slice_unaligned(slice: &[T]) -> Self;
     fn write_to_slice_unaligned(self, slice: &mut [T]);
     fn deref(&self) -> &XY<T>;
@@ -112,6 +114,9 @@ pub trait Vector2<T>: Vector<T> + Vector2Const {
 
 pub trait Vector3<T>: Vector<T> + Vector3Const {
     fn new(x: T, y: T, z: T) -> Self;
+    fn splat_x(self) -> Self;
+    fn splat_y(self) -> Self;
+    fn splat_z(self) -> Self;
     fn from_slice_unaligned(slice: &[T]) -> Self;
     fn write_to_slice_unaligned(self, slice: &mut [T]);
     fn deref(&self) -> &XYZ<T>;

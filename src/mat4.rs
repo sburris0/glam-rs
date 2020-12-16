@@ -1,11 +1,14 @@
 #[allow(unused_imports)]
 use num_traits::Float;
 
-use crate::core::traits::{
-    matrix::{FloatMatrix4x4, Matrix4x4, MatrixConst},
-    projection::ProjectionMatrix,
+use crate::core::{
+    storage::{Vector4x4, XYZW},
+    traits::{
+        matrix::{FloatMatrix4x4, Matrix4x4, MatrixConst},
+        projection::ProjectionMatrix,
+    },
 };
-use crate::{Quat, Vec3, Vec3A, Vec3ASwizzles, Vec4, Vec4Swizzles};
+use crate::{DQuat, DVec3, DVec4, Quat, Vec3, Vec3A, Vec4};
 #[cfg(all(vec4_sse2, target_arch = "x86"))]
 use core::arch::x86::*;
 #[cfg(all(vec4_sse2, target_arch = "x86_64"))]
@@ -236,45 +239,12 @@ macro_rules! impl_mat4 {
             #[inline(always)]
             pub fn transpose(&self) -> Self {
                 Self(self.0.transpose())
-                // #[cfg(vec4_f32)]
-                // {
-                //     let (m00, m01, m02, m03) = self.x_axis.into();
-                //     let (m10, m11, m12, m13) = self.y_axis.into();
-                //     let (m20, m21, m22, m23) = self.z_axis.into();
-                //     let (m30, m31, m32, m33) = self.w_axis.into();
-
-                //     Self {
-                //         x_axis: $vec4::new(m00, m10, m20, m30),
-                //         y_axis: $vec4::new(m01, m11, m21, m31),
-                //         z_axis: $vec4::new(m02, m12, m22, m32),
-                //         w_axis: $vec4::new(m03, m13, m23, m33),
-                //     }
-                // }
             }
 
             /// Returns the determinant of `self`.
             #[inline(always)]
             pub fn determinant(&self) -> $t {
                 self.0.determinant()
-                // #[cfg(vec4_f32)]
-                // {
-                //     let (m00, m01, m02, m03) = self.x_axis.into();
-                //     let (m10, m11, m12, m13) = self.y_axis.into();
-                //     let (m20, m21, m22, m23) = self.z_axis.into();
-                //     let (m30, m31, m32, m33) = self.w_axis.into();
-
-                //     let a2323 = m22 * m33 - m23 * m32;
-                //     let a1323 = m21 * m33 - m23 * m31;
-                //     let a1223 = m21 * m32 - m22 * m31;
-                //     let a0323 = m20 * m33 - m23 * m30;
-                //     let a0223 = m20 * m32 - m22 * m30;
-                //     let a0123 = m20 * m31 - m21 * m30;
-
-                //     m00 * (m11 * a2323 - m12 * a1323 + m13 * a1223)
-                //         - m01 * (m10 * a2323 - m12 * a0323 + m13 * a0223)
-                //         + m02 * (m10 * a1323 - m11 * a0323 + m13 * a0123)
-                //         - m03 * (m10 * a1223 - m11 * a0223 + m12 * a0123)
-                // }
             }
 
             /// Returns the inverse of `self`.
@@ -283,79 +253,6 @@ macro_rules! impl_mat4 {
             #[inline(always)]
             pub fn inverse(&self) -> Self {
                 Self(self.0.inverse())
-                // #[cfg(vec4_f32)]
-                // {
-                //     let (m00, m01, m02, m03) = self.x_axis.into();
-                //     let (m10, m11, m12, m13) = self.y_axis.into();
-                //     let (m20, m21, m22, m23) = self.z_axis.into();
-                //     let (m30, m31, m32, m33) = self.w_axis.into();
-
-                //     let coef00 = m22 * m33 - m32 * m23;
-                //     let coef02 = m12 * m33 - m32 * m13;
-                //     let coef03 = m12 * m23 - m22 * m13;
-
-                //     let coef04 = m21 * m33 - m31 * m23;
-                //     let coef06 = m11 * m33 - m31 * m13;
-                //     let coef07 = m11 * m23 - m21 * m13;
-
-                //     let coef08 = m21 * m32 - m31 * m22;
-                //     let coef10 = m11 * m32 - m31 * m12;
-                //     let coef11 = m11 * m22 - m21 * m12;
-
-                //     let coef12 = m20 * m33 - m30 * m23;
-                //     let coef14 = m10 * m33 - m30 * m13;
-                //     let coef15 = m10 * m23 - m20 * m13;
-
-                //     let coef16 = m20 * m32 - m30 * m22;
-                //     let coef18 = m10 * m32 - m30 * m12;
-                //     let coef19 = m10 * m22 - m20 * m12;
-
-                //     let coef20 = m20 * m31 - m30 * m21;
-                //     let coef22 = m10 * m31 - m30 * m11;
-                //     let coef23 = m10 * m21 - m20 * m11;
-
-                //     let fac0 = $vec4::new(coef00, coef00, coef02, coef03);
-                //     let fac1 = $vec4::new(coef04, coef04, coef06, coef07);
-                //     let fac2 = $vec4::new(coef08, coef08, coef10, coef11);
-                //     let fac3 = $vec4::new(coef12, coef12, coef14, coef15);
-                //     let fac4 = $vec4::new(coef16, coef16, coef18, coef19);
-                //     let fac5 = $vec4::new(coef20, coef20, coef22, coef23);
-
-                //     let vec0 = $vec4::new(m10, m00, m00, m00);
-                //     let vec1 = $vec4::new(m11, m01, m01, m01);
-                //     let vec2 = $vec4::new(m12, m02, m02, m02);
-                //     let vec3 = $vec4::new(m13, m03, m03, m03);
-
-                //     let inv0 = vec1 * fac0 - vec2 * fac1 + vec3 * fac2;
-                //     let inv1 = vec0 * fac0 - vec2 * fac3 + vec3 * fac4;
-                //     let inv2 = vec0 * fac1 - vec1 * fac3 + vec3 * fac5;
-                //     let inv3 = vec0 * fac2 - vec1 * fac4 + vec2 * fac5;
-
-                //     let sign_a = $vec4::new(1.0, -1.0, 1.0, -1.0);
-                //     let sign_b = $vec4::new(-1.0, 1.0, -1.0, 1.0);
-
-                //     let inverse = Self {
-                //         x_axis: inv0 * sign_a,
-                //         y_axis: inv1 * sign_b,
-                //         z_axis: inv2 * sign_a,
-                //         w_axis: inv3 * sign_b,
-                //     };
-
-                //     let col0 = $vec4::new(
-                //         inverse.x_axis.x,
-                //         inverse.y_axis.x,
-                //         inverse.z_axis.x,
-                //         inverse.w_axis.x,
-                //     );
-
-                //     let dot0 = self.x_axis * col0;
-                //     let dot1 = dot0.x + dot0.y + dot0.z + dot0.w;
-
-                //     glam_assert!(dot1 != 0.0);
-
-                //     let rcp_det = 1.0 / dot1;
-                //     inverse * rcp_det
-                // }
             }
 
             /// Creates a left-handed view matrix using a camera position, an up direction, and a focal
@@ -559,20 +456,7 @@ macro_rules! impl_mat4 {
             /// This is the equivalent of multiplying the `$vec3` as a `$vec4` where `w` is `1.0`.
             #[inline]
             pub fn transform_point3(&self, other: $vec3) -> $vec3 {
-                $vec3::from(self.transform_point3a(Vec3A::from(other)))
-            }
-
-            /// Transforms the given `Vec3A` as 3D point.
-            ///
-            /// This is the equivalent of multiplying the `Vec3A` as a `$vec4` where `w` is `1.0`.
-            #[inline]
-            pub fn transform_point3a(&self, other: Vec3A) -> Vec3A {
-                let mut res = self.x_axis.mul(other.xxxx());
-                res = self.y_axis.mul_add(other.yyyy(), res);
-                res = self.z_axis.mul_add(other.zzzz(), res);
-                res = self.w_axis.add(res);
-                res = res.mul(res.wwww().recip());
-                Vec3A::from(res)
+                $vec3(self.0.transform_point3(other.0))
             }
 
             /// Transforms the give `$vec3` as 3D vector.
@@ -580,18 +464,7 @@ macro_rules! impl_mat4 {
             /// This is the equivalent of multiplying the `$vec3` as a `$vec4` where `w` is `0.0`.
             #[inline]
             pub fn transform_vector3(&self, other: $vec3) -> $vec3 {
-                $vec3::from(self.transform_vector3a(Vec3A::from(other)))
-            }
-
-            /// Transforms the give `Vec3A` as 3D vector.
-            ///
-            /// This is the equivalent of multiplying the `Vec3A` as a `$vec4` where `w` is `0.0`.
-            #[inline]
-            pub fn transform_vector3a(&self, other: Vec3A) -> Vec3A {
-                let mut res = self.x_axis.mul(other.xxxx());
-                res = self.y_axis.mul_add(other.yyyy(), res);
-                res = self.z_axis.mul_add(other.zzzz(), res);
-                Vec3A::from(res)
+                $vec3(self.0.transform_vector3(other.0))
             }
 
             /// Returns true if the absolute difference of all elements between `self` and `other` is less
@@ -735,10 +608,10 @@ macro_rules! impl_mat4 {
 }
 
 #[cfg(all(target_feature = "sse2", not(feature = "scalar-math")))]
-type InnerF32 = crate::core::storage::Vector4x4<__m128>;
+type InnerF32 = Vector4x4<__m128>;
 
 #[cfg(any(not(target_feature = "sse2"), feature = "scalar-math"))]
-type InnerF32 = crate::core::storage::Vector4x4<XYZW<f32>>;
+type InnerF32 = Vector4x4<XYZW<f32>>;
 
 /// A 4x4 column major matrix.
 ///
@@ -748,3 +621,30 @@ type InnerF32 = crate::core::storage::Vector4x4<XYZW<f32>>;
 pub struct Mat4(pub(crate) InnerF32);
 
 impl_mat4!(mat4, Mat4, Vec4, Vec3, Quat, f32, InnerF32);
+
+impl Mat4 {
+    /// Transforms the given `Vec3A` as 3D point.
+    ///
+    /// This is the equivalent of multiplying the `Vec3A` as a `$vec4` where `w` is `1.0`.
+    #[inline]
+    pub fn transform_point3a(&self, other: Vec3A) -> Vec3A {
+        Vec3A(self.0.transform_float4_as_point3(other.0))
+    }
+
+    /// Transforms the give `Vec3A` as 3D vector.
+    ///
+    /// This is the equivalent of multiplying the `Vec3A` as a `$vec4` where `w` is `0.0`.
+    #[inline]
+    pub fn transform_vector3a(&self, other: Vec3A) -> Vec3A {
+        Vec3A(self.0.transform_float4_as_vector3(other.0))
+    }
+}
+
+type InnerF64 = Vector4x4<XYZW<f64>>;
+
+/// A 4x4 column major matrix.
+#[derive(Clone, Copy)]
+#[repr(transparent)]
+pub struct DMat4(pub(crate) InnerF64);
+
+impl_mat4!(dmat4, DMat4, DVec4, DVec3, DQuat, f64, InnerF64);

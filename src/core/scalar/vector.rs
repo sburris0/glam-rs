@@ -654,11 +654,18 @@ impl<T: NumEx> Vector2<T> for XY<T> {
     }
 
     #[inline(always)]
+    fn splat_x(self) -> Self {
+        Self::splat(self.x)
+    }
+
+    #[inline(always)]
+    fn splat_y(self) -> Self {
+        Self::splat(self.y)
+    }
+
+    #[inline(always)]
     fn from_slice_unaligned(slice: &[T]) -> Self {
-        Self {
-            x: slice[0],
-            y: slice[1],
-        }
+        Self::new(slice[0], slice[1])
     }
 
     #[inline(always)]
@@ -736,6 +743,21 @@ impl<T: NumEx> Vector3<T> for XYZ<T> {
     #[inline(always)]
     fn new(x: T, y: T, z: T) -> Self {
         Self { x, y, z }
+    }
+
+    #[inline(always)]
+    fn splat_x(self) -> Self {
+        Self::splat(self.x)
+    }
+
+    #[inline(always)]
+    fn splat_y(self) -> Self {
+        Self::splat(self.y)
+    }
+
+    #[inline(always)]
+    fn splat_z(self) -> Self {
+        Self::splat(self.z)
     }
 
     #[inline(always)]

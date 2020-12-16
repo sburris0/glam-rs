@@ -444,6 +444,64 @@ fn test_mat2_serde() {
 }
 
 #[test]
+fn test_mat3_serde() {
+    let a = Mat3::from_cols(
+        Vec3::new(1.0, 2.0, 3.0),
+        Vec3::new(4.0, 5.0, 6.0),
+        Vec3::new(7.0, 8.0, 9.0),
+    );
+    let serialized = serde_json::to_string(&a).unwrap();
+    assert_eq!(serialized, "[1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0]");
+    let deserialized = serde_json::from_str(&serialized).unwrap();
+    assert_eq!(a, deserialized);
+    let deserialized = serde_json::from_str::<Mat3>("[]");
+    assert!(deserialized.is_err());
+    let deserialized = serde_json::from_str::<Mat3>("[1.0]");
+    assert!(deserialized.is_err());
+    let deserialized = serde_json::from_str::<Mat3>("[1.0,2.0]");
+    assert!(deserialized.is_err());
+    let deserialized = serde_json::from_str::<Mat3>("[1.0,2.0,3.0]");
+    assert!(deserialized.is_err());
+    let deserialized = serde_json::from_str::<Mat3>("[1.0,2.0,3.0,4.0,5.0]");
+    assert!(deserialized.is_err());
+    let deserialized = serde_json::from_str::<Mat3>("[[1.0,2.0,3.0],[4.0,5.0,6.0],[7.0,8.0,9.0]]");
+    assert!(deserialized.is_err());
+}
+
+#[test]
+fn test_mat4_serde() {
+    let a = Mat4::from_cols(
+        Vec4::new(1.0, 2.0, 3.0, 4.0),
+        Vec4::new(5.0, 6.0, 7.0, 8.0),
+        Vec4::new(9.0, 10.0, 11.0, 12.0),
+        Vec4::new(13.0, 14.0, 15.0, 16.0),
+    );
+    let serialized = serde_json::to_string(&a).unwrap();
+    assert_eq!(
+        serialized,
+        "[1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0,13.0,14.0,15.0,16.0]"
+    );
+    let deserialized = serde_json::from_str(&serialized).unwrap();
+    assert_eq!(a, deserialized);
+    let deserialized = serde_json::from_str::<Mat4>("[]");
+    assert!(deserialized.is_err());
+    let deserialized = serde_json::from_str::<Mat4>("[1.0]");
+    assert!(deserialized.is_err());
+    let deserialized = serde_json::from_str::<Mat4>("[1.0,2.0]");
+    assert!(deserialized.is_err());
+    let deserialized = serde_json::from_str::<Mat4>("[1.0,2.0,3.0]");
+    assert!(deserialized.is_err());
+    let deserialized = serde_json::from_str::<Mat4>("[1.0,2.0,3.0,4.0,5.0]");
+    assert!(deserialized.is_err());
+    let deserialized = serde_json::from_str::<Mat4>("[[1.0,2.0,3.0],[4.0,5.0,6.0],[7.0,8.0,9.0]]");
+    assert!(deserialized.is_err());
+    let deserialized = serde_json::from_str::<Mat4>(
+        "[[1.0,2.0,3.0,4.0],[5.0,6.0,7.0,8.0],[9.0,10.0,11.0,12.0][13.0,14.0,15.0,16.0]]",
+    );
+    assert!(deserialized.is_err());
+}
+
+#[test]
 fn test_quat_serde() {
     let a = Quat::from_xyzw(1.0, 2.0, 3.0, 4.0);
     let serialized = serde_json::to_string(&a).unwrap();

@@ -207,6 +207,7 @@ pub use self::core::storage::{XY, XYZ, XYZW};
 
 pub use self::mat2::{dmat2, DMat2};
 pub use self::mat3::{dmat3, DMat3};
+pub use self::mat4::{dmat4, DMat4};
 pub use self::quat::{dquat, DQuat};
 pub use self::vec2::{dvec2, DVec2};
 pub use self::vec3::{dvec3, DVec3};

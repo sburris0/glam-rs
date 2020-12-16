@@ -1,7 +1,11 @@
 use crate::core::{
-    storage::{Vector2x2, XYZx3, XY, XYZ},
+    storage::{Vector2x2, Vector4x4, XYZx3, XY, XYZ, XYZW},
     traits::{
-        matrix::{FloatMatrix2x2, FloatMatrix3x3, Matrix, Matrix2x2, Matrix3x3, MatrixConst},
+        matrix::{
+            FloatMatrix2x2, FloatMatrix3x3, FloatMatrix4x4, Matrix, Matrix2x2, Matrix3x3,
+            Matrix4x4, MatrixConst,
+        },
+        projection::ProjectionMatrix,
         scalar::{FloatEx, NumEx},
         vector::*,
     },
@@ -22,11 +26,8 @@ impl<T: NumEx> Matrix<T> for Vector2x2<XY<T>> {}
 
 impl<T: NumEx> Matrix2x2<T, XY<T>> for Vector2x2<XY<T>> {
     #[inline(always)]
-    fn new(m00: T, m01: T, m10: T, m11: T) -> Self {
-        Self {
-            x_axis: Vector2::new(m00, m01),
-            y_axis: Vector2::new(m10, m11),
-        }
+    fn from_cols(x_axis: XY<T>, y_axis: XY<T>) -> Self {
+        Self { x_axis, y_axis }
     }
 
     #[inline(always)]
@@ -250,3 +251,180 @@ impl<T: FloatEx> FloatMatrix3x3<T> for XYZx3<T> {
         res.into()
     }
 }
+
+impl<T: NumEx> MatrixConst for Vector4x4<XYZW<T>> {
+    const ZERO: Self = Self {
+        x_axis: XYZW::ZERO,
+        y_axis: XYZW::ZERO,
+        z_axis: XYZW::ZERO,
+        w_axis: XYZW::ZERO,
+    };
+    const IDENTITY: Self = Self {
+        x_axis: XYZW::UNIT_X,
+        y_axis: XYZW::UNIT_Y,
+        z_axis: XYZW::UNIT_Z,
+        w_axis: XYZW::UNIT_W,
+    };
+}
+
+impl<T: NumEx> Matrix<T> for Vector4x4<XYZW<T>> {}
+
+impl<T: NumEx> Matrix4x4<T, XYZW<T>> for Vector4x4<XYZW<T>> {
+    #[rustfmt::skip]
+    #[inline(always)]
+    fn from_cols(x_axis: XYZW<T>, y_axis: XYZW<T>, z_axis: XYZW<T>, w_axis: XYZW<T>) -> Self {
+        Self { x_axis, y_axis, z_axis, w_axis }
+    }
+
+    #[inline(always)]
+    fn x_axis(&self) -> &XYZW<T> {
+        &self.x_axis
+    }
+
+    #[inline(always)]
+    fn y_axis(&self) -> &XYZW<T> {
+        &self.y_axis
+    }
+
+    #[inline(always)]
+    fn z_axis(&self) -> &XYZW<T> {
+        &self.z_axis
+    }
+
+    #[inline(always)]
+    fn w_axis(&self) -> &XYZW<T> {
+        &self.w_axis
+    }
+
+    #[inline(always)]
+    fn deref(&self) -> &Vector4x4<XYZW<T>> {
+        unsafe { &*(self as *const Self as *const Vector4x4<XYZW<T>>) }
+    }
+
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut Vector4x4<XYZW<T>> {
+        unsafe { &mut *(self as *mut Self as *mut Vector4x4<XYZW<T>>) }
+    }
+
+    fn determinant(&self) -> T {
+        let (m00, m01, m02, m03) = self.x_axis.into_tuple();
+        let (m10, m11, m12, m13) = self.y_axis.into_tuple();
+        let (m20, m21, m22, m23) = self.z_axis.into_tuple();
+        let (m30, m31, m32, m33) = self.w_axis.into_tuple();
+
+        let a2323 = m22 * m33 - m23 * m32;
+        let a1323 = m21 * m33 - m23 * m31;
+        let a1223 = m21 * m32 - m22 * m31;
+        let a0323 = m20 * m33 - m23 * m30;
+        let a0223 = m20 * m32 - m22 * m30;
+        let a0123 = m20 * m31 - m21 * m30;
+
+        m00 * (m11 * a2323 - m12 * a1323 + m13 * a1223)
+            - m01 * (m10 * a2323 - m12 * a0323 + m13 * a0223)
+            + m02 * (m10 * a1323 - m11 * a0323 + m13 * a0123)
+            - m03 * (m10 * a1223 - m11 * a0223 + m12 * a0123)
+    }
+
+    fn transpose(&self) -> Self {
+        let (m00, m01, m02, m03) = self.x_axis.into_tuple();
+        let (m10, m11, m12, m13) = self.y_axis.into_tuple();
+        let (m20, m21, m22, m23) = self.z_axis.into_tuple();
+        let (m30, m31, m32, m33) = self.w_axis.into_tuple();
+
+        Self {
+            x_axis: Vector4::new(m00, m10, m20, m30),
+            y_axis: Vector4::new(m01, m11, m21, m31),
+            z_axis: Vector4::new(m02, m12, m22, m32),
+            w_axis: Vector4::new(m03, m13, m23, m33),
+        }
+    }
+}
+
+impl<T: FloatEx> FloatMatrix4x4<T, XYZW<T>> for Vector4x4<XYZW<T>> {
+    type SIMDVector3 = XYZ<T>;
+
+    #[inline(always)]
+    fn transform_float4_as_point3(&self, other: XYZ<T>) -> XYZ<T> {
+        self.transform_point3(other)
+    }
+
+    #[inline(always)]
+    fn transform_float4_as_vector3(&self, other: XYZ<T>) -> XYZ<T> {
+        self.transform_vector3(other)
+    }
+
+    fn inverse(&self) -> Self {
+        let (m00, m01, m02, m03) = self.x_axis.into_tuple();
+        let (m10, m11, m12, m13) = self.y_axis.into_tuple();
+        let (m20, m21, m22, m23) = self.z_axis.into_tuple();
+        let (m30, m31, m32, m33) = self.w_axis.into_tuple();
+
+        let coef00 = m22 * m33 - m32 * m23;
+        let coef02 = m12 * m33 - m32 * m13;
+        let coef03 = m12 * m23 - m22 * m13;
+
+        let coef04 = m21 * m33 - m31 * m23;
+        let coef06 = m11 * m33 - m31 * m13;
+        let coef07 = m11 * m23 - m21 * m13;
+
+        let coef08 = m21 * m32 - m31 * m22;
+        let coef10 = m11 * m32 - m31 * m12;
+        let coef11 = m11 * m22 - m21 * m12;
+
+        let coef12 = m20 * m33 - m30 * m23;
+        let coef14 = m10 * m33 - m30 * m13;
+        let coef15 = m10 * m23 - m20 * m13;
+
+        let coef16 = m20 * m32 - m30 * m22;
+        let coef18 = m10 * m32 - m30 * m12;
+        let coef19 = m10 * m22 - m20 * m12;
+
+        let coef20 = m20 * m31 - m30 * m21;
+        let coef22 = m10 * m31 - m30 * m11;
+        let coef23 = m10 * m21 - m20 * m11;
+
+        let fac0: XYZW<T> = Vector4::new(coef00, coef00, coef02, coef03);
+        let fac1: XYZW<T> = Vector4::new(coef04, coef04, coef06, coef07);
+        let fac2: XYZW<T> = Vector4::new(coef08, coef08, coef10, coef11);
+        let fac3: XYZW<T> = Vector4::new(coef12, coef12, coef14, coef15);
+        let fac4: XYZW<T> = Vector4::new(coef16, coef16, coef18, coef19);
+        let fac5: XYZW<T> = Vector4::new(coef20, coef20, coef22, coef23);
+
+        let vec0: XYZW<T> = Vector4::new(m10, m00, m00, m00);
+        let vec1: XYZW<T> = Vector4::new(m11, m01, m01, m01);
+        let vec2: XYZW<T> = Vector4::new(m12, m02, m02, m02);
+        let vec3: XYZW<T> = Vector4::new(m13, m03, m03, m03);
+
+        let inv0 = vec1.mul(fac0).sub(vec2.mul(fac1)).add(vec3.mul(fac2));
+        let inv1 = vec0.mul(fac0).sub(vec2.mul(fac3)).add(vec3.mul(fac4));
+        let inv2 = vec0.mul(fac1).sub(vec1.mul(fac3)).add(vec3.mul(fac5));
+        let inv3 = vec0.mul(fac2).sub(vec1.mul(fac4)).add(vec2.mul(fac5));
+
+        let sign_a = Vector4::new(T::ONE, -T::ONE, T::ONE, -T::ONE);
+        let sign_b = Vector4::new(-T::ONE, T::ONE, -T::ONE, T::ONE);
+
+        let inverse = Self {
+            x_axis: inv0.mul(sign_a),
+            y_axis: inv1.mul(sign_b),
+            z_axis: inv2.mul(sign_a),
+            w_axis: inv3.mul(sign_b),
+        };
+
+        let col0 = Vector4::new(
+            inverse.x_axis.x,
+            inverse.y_axis.x,
+            inverse.z_axis.x,
+            inverse.w_axis.x,
+        );
+
+        let dot0 = self.x_axis().mul(col0);
+        let dot1 = dot0.x + dot0.y + dot0.z + dot0.w;
+
+        glam_assert!(dot1 != T::ZERO);
+
+        let rcp_det = dot1.recip();
+        inverse.mul_scalar(rcp_det)
+    }
+}
+
+impl<T: FloatEx> ProjectionMatrix<T, XYZW<T>> for Vector4x4<XYZW<T>> {}

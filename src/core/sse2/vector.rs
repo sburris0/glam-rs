@@ -291,6 +291,21 @@ impl Vector3<f32> for __m128 {
     }
 
     #[inline(always)]
+    fn splat_x(self) -> Self {
+        unsafe { _mm_shuffle_ps(self, self, 0b00_00_00_00) }
+    }
+
+    #[inline(always)]
+    fn splat_y(self) -> Self {
+        unsafe { _mm_shuffle_ps(self, self, 0b01_01_01_01) }
+    }
+
+    #[inline(always)]
+    fn splat_z(self) -> Self {
+        unsafe { _mm_shuffle_ps(self, self, 0b10_10_10_10) }
+    }
+
+    #[inline(always)]
     fn from_slice_unaligned(slice: &[f32]) -> Self {
         Vector3::new(slice[0], slice[1], slice[2])
     }
@@ -804,6 +819,27 @@ impl Quaternion<f32> for __m128 {
                 .add(b.cross(other).mul(w.mul(TWO)))
                 .into()
         }
+    }
+}
+
+impl From<XYZW<f32>> for __m128 {
+    #[inline]
+    fn from(v: XYZW<f32>) -> __m128 {
+        unsafe { _mm_set_ps(v.w, v.z, v.y, v.x) }
+    }
+}
+
+impl From<XYZ<f32>> for __m128 {
+    #[inline]
+    fn from(v: XYZ<f32>) -> __m128 {
+        unsafe { _mm_set_ps(0.0, v.z, v.y, v.x) }
+    }
+}
+
+impl From<XY<f32>> for __m128 {
+    #[inline]
+    fn from(v: XY<f32>) -> __m128 {
+        unsafe { _mm_set_ps(0.0, 0.0, v.y, v.x) }
     }
 }
 

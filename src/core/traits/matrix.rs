@@ -15,17 +15,25 @@ pub trait MatrixConst {
 pub trait Matrix<T: NumEx>: Sized + Copy + Clone {}
 
 pub trait Matrix2x2<T: NumEx, V2: Vector2<T>>: Matrix<T> {
-    fn new(m00: T, m01: T, m10: T, m11: T) -> Self;
+    #[inline(always)]
+    fn new(m00: T, m01: T, m10: T, m11: T) -> Self {
+        Self::from_cols(V2::new(m00, m01), V2::new(m10, m11))
+    }
+
+    fn from_cols(x_axis: V2, y_axis: V2) -> Self;
+
+    #[inline(always)]
+    fn x_axis(&self) -> &V2 {
+        &self.deref().x_axis
+    }
+
+    #[inline(always)]
+    fn y_axis(&self) -> &V2 {
+        &self.deref().y_axis
+    }
 
     fn deref(&self) -> &Vector2x2<V2>;
     fn deref_mut(&mut self) -> &mut Vector2x2<V2>;
-
-    #[inline(always)]
-    fn from_cols(x_axis: V2, y_axis: V2) -> Self {
-        let x_axis = x_axis.deref();
-        let y_axis = y_axis.deref();
-        Self::new(x_axis.x, x_axis.y, y_axis.x, y_axis.y)
-    }
 
     #[inline(always)]
     fn from_cols_array(m: &[T; 4]) -> Self {
@@ -35,42 +43,34 @@ pub trait Matrix2x2<T: NumEx, V2: Vector2<T>>: Matrix<T> {
     #[rustfmt::skip]
     #[inline(always)]
     fn to_cols_array(&self) -> [T; 4] {
-        let m = self.deref();
-        let x_axis = m.x_axis.deref();
-        let y_axis = m.y_axis.deref();
+        let x_axis = self.x_axis().deref();
+        let y_axis = self.y_axis().deref();
         [x_axis.x, x_axis.y,
          y_axis.x, y_axis.y]
     }
 
-    #[rustfmt::skip]
     #[inline(always)]
     fn from_cols_array_2d(m: &[[T; 2]; 2]) -> Self {
-        Self::new(
-            m[0][0], m[0][1],
-            m[1][0], m[1][1])
+        Self::from_cols(V2::from_array(m[0]), V2::from_array(m[1]))
     }
 
-    #[rustfmt::skip]
     #[inline(always)]
     fn to_cols_array_2d(&self) -> [[T; 2]; 2] {
-        let m = self.deref();
-        let x_axis = m.x_axis.deref();
-        let y_axis = m.y_axis.deref();
-        [[x_axis.x, x_axis.y],
-         [y_axis.x, y_axis.y]]
+        [self.x_axis().into_array(), self.y_axis().into_array()]
     }
 
     #[rustfmt::skip]
     #[inline(always)]
-    fn from_scale(scale: XY<T>) -> Self {
+    fn from_scale(scale: V2) -> Self {
+        let (scale_x, scale_y) = scale.into_tuple();
         Self::new(
-            scale.x, T::ZERO,
-            T::ZERO, scale.y)
+            scale_x, T::ZERO,
+            T::ZERO, scale_y)
     }
 
     fn determinant(&self) -> T;
     fn transpose(&self) -> Self;
-    fn mul_vector(&self, other: XY<T>) -> XY<T>;
+    fn mul_vector(&self, other: V2) -> V2;
     fn mul_matrix(&self, other: &Self) -> Self;
     fn mul_scalar(&self, other: T) -> Self;
     fn add_matrix(&self, other: &Self) -> Self;
@@ -80,22 +80,17 @@ pub trait Matrix2x2<T: NumEx, V2: Vector2<T>>: Matrix<T> {
 pub trait FloatMatrix2x2<T: FloatEx, V2: FloatVector2<T>>: Matrix2x2<T, V2> {
     fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool;
 
-    #[rustfmt::skip]
     #[inline]
-    fn from_scale_angle(scale: XY<T>, angle: T) -> Self {
+    fn from_scale_angle(scale: V2, angle: T) -> Self {
         let (sin, cos) = angle.sin_cos();
-        Self::new(
-            cos * scale.x, sin * scale.x,
-            -sin * scale.y, cos * scale.y)
+        let (scale_x, scale_y) = scale.into_tuple();
+        Self::new(cos * scale_x, sin * scale_x, -sin * scale_y, cos * scale_y)
     }
 
-    #[rustfmt::skip]
     #[inline]
     fn from_angle(angle: T) -> Self {
         let (sin, cos) = angle.sin_cos();
-        Self::new(
-            cos, sin,
-            -sin, cos)
+        Self::new(cos, sin, -sin, cos)
     }
 
     fn inverse(&self) -> Self;
@@ -283,12 +278,22 @@ pub trait FloatMatrix3x3<T: FloatEx>: Matrix3x3<T> {
 
 pub trait Matrix4x4<T: NumEx, V4: Vector4<T>>: Matrix<T> {
     #[rustfmt::skip]
+    #[inline(always)]
     fn new(
         m00: T, m01: T, m02: T, m03: T,
         m10: T, m11: T, m12: T, m13: T,
         m20: T, m21: T, m22: T, m23: T,
         m30: T, m31: T, m32: T, m33: T,
-        ) -> Self;
+        ) -> Self {
+        Self::from_cols(
+            V4::new(m00, m01, m02, m03),
+            V4::new(m10, m11, m12, m13),
+            V4::new(m20, m21, m22, m23),
+            V4::new(m30, m31, m32, m33),
+        )
+    }
+
+    fn from_cols(x_axis: V4, y_axis: V4, z_axis: V4, w_axis: V4) -> Self;
 
     fn x_axis(&self) -> &V4;
     fn y_axis(&self) -> &V4;
@@ -297,21 +302,6 @@ pub trait Matrix4x4<T: NumEx, V4: Vector4<T>>: Matrix<T> {
 
     fn deref(&self) -> &Vector4x4<XYZW<T>>;
     fn deref_mut(&mut self) -> &mut Vector4x4<XYZW<T>>;
-
-    #[rustfmt::skip]
-    #[inline(always)]
-    fn from_cols(x_axis: V4, y_axis: V4, z_axis: V4, w_axis: V4) -> Self {
-        let x_axis = x_axis.deref();
-        let y_axis = y_axis.deref();
-        let z_axis = z_axis.deref();
-        let w_axis = w_axis.deref();
-        Self::new(
-            x_axis.x, x_axis.y, x_axis.z, x_axis.w,
-            y_axis.x, y_axis.y, y_axis.z, y_axis.w,
-            z_axis.x, z_axis.y, z_axis.z, z_axis.w,
-            w_axis.x, w_axis.y, w_axis.z, w_axis.w,
-        )
-    }
 
     #[rustfmt::skip]
     #[inline(always)]
@@ -341,32 +331,28 @@ pub trait Matrix4x4<T: NumEx, V4: Vector4<T>>: Matrix<T> {
 
     #[inline(always)]
     fn from_cols_array_2d(m: &[[T; 4]; 4]) -> Self {
-        Self::new(
-            m[0][0], m[0][1], m[0][2], m[0][3], m[1][0], m[1][1], m[1][2], m[1][3], m[2][0],
-            m[2][1], m[2][2], m[2][3], m[3][0], m[3][1], m[3][2], m[3][3],
+        Self::from_cols(
+            Vector4::from_array(m[0]),
+            Vector4::from_array(m[1]),
+            Vector4::from_array(m[2]),
+            Vector4::from_array(m[3]),
         )
     }
 
-    #[rustfmt::skip]
     #[inline(always)]
     fn to_cols_array_2d(&self) -> [[T; 4]; 4] {
-        let m = self.deref();
-        let x_axis = m.x_axis.deref();
-        let y_axis = m.y_axis.deref();
-        let z_axis = m.z_axis.deref();
-        let w_axis = m.w_axis.deref();
         [
-            [x_axis.x, x_axis.y, x_axis.z, x_axis.w],
-            [y_axis.x, y_axis.y, y_axis.z, y_axis.w],
-            [z_axis.x, z_axis.y, z_axis.z, z_axis.w],
-            [w_axis.x, w_axis.y, w_axis.z, w_axis.w],
+            self.x_axis().into_array(),
+            self.y_axis().into_array(),
+            self.z_axis().into_array(),
+            self.w_axis().into_array(),
         ]
     }
 
     #[inline(always)]
     fn from_scale(scale: XYZ<T>) -> Self {
         // Do not panic as long as any component is non-zero
-        glam_assert!(scale.cmpne($vec3::zero()).any());
+        glam_assert!(scale.cmpne(XYZ::<T>::ZERO).any());
         Self::from_cols(
             V4::new(scale.x, T::ZERO, T::ZERO, T::ZERO),
             V4::new(T::ZERO, scale.y, T::ZERO, T::ZERO),
@@ -443,7 +429,19 @@ pub trait Matrix4x4<T: NumEx, V4: Vector4<T>>: Matrix<T> {
 pub trait FloatMatrix4x4<T: FloatEx, V4: FloatVector4<T> + Quaternion<T>>:
     Matrix4x4<T, V4>
 {
-    fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool;
+    // Vector3 represented by a SIMD type if available
+    type SIMDVector3;
+
+    #[inline]
+    fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool
+    where
+        <V4 as Vector<T>>::Mask: MaskVector4,
+    {
+        self.x_axis().abs_diff_eq(*other.x_axis(), max_abs_diff)
+            && self.y_axis().abs_diff_eq(*other.y_axis(), max_abs_diff)
+            && self.z_axis().abs_diff_eq(*other.z_axis(), max_abs_diff)
+            && self.w_axis().abs_diff_eq(*other.w_axis(), max_abs_diff)
+    }
 
     #[inline]
     fn quaternion_to_axes(rotation: V4) -> (V4, V4, V4) {
@@ -485,7 +483,7 @@ pub trait FloatMatrix4x4<T: FloatEx, V4: FloatVector4<T> + Quaternion<T>>:
             self.z_axis().length(),
         );
 
-        glam_assert!(scale.cmpne(XYZ::zero()).all());
+        glam_assert!(scale.cmpne(XYZ::<T>::ZERO).all());
 
         let inv_scale = scale.recip();
 
@@ -609,6 +607,27 @@ pub trait FloatMatrix4x4<T: FloatEx, V4: FloatVector4<T> + Quaternion<T>>:
         glam_assert!(up.is_normalized());
         Self::look_to_lh(eye, eye.sub(center), up)
     }
+
+    #[inline]
+    fn transform_point3(&self, other: XYZ<T>) -> XYZ<T> {
+        let mut res = self.x_axis().mul_scalar(other.x);
+        res = self.y_axis().mul_scalar(other.y).add(res);
+        res = self.z_axis().mul_scalar(other.z).add(res);
+        res = self.w_axis().add(res);
+        res = res.mul(res.splat_w().recip());
+        res.into_xyz()
+    }
+
+    #[inline]
+    fn transform_vector3(&self, other: XYZ<T>) -> XYZ<T> {
+        let mut res = self.x_axis().mul_scalar(other.x);
+        res = self.y_axis().mul_scalar(other.y).add(res);
+        res = self.z_axis().mul_scalar(other.z).add(res);
+        res.into_xyz()
+    }
+
+    fn transform_float4_as_point3(&self, other: Self::SIMDVector3) -> Self::SIMDVector3;
+    fn transform_float4_as_vector3(&self, other: Self::SIMDVector3) -> Self::SIMDVector3;
 
     fn inverse(&self) -> Self;
 }
