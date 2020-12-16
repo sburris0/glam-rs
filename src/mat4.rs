@@ -476,12 +476,9 @@ macro_rules! impl_mat4 {
             ///
             /// For more on floating point comparisons see
             /// https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
-            #[inline]
+            #[inline(always)]
             pub fn abs_diff_eq(&self, other: Self, max_abs_diff: $t) -> bool {
-                self.x_axis.abs_diff_eq(other.x_axis, max_abs_diff)
-                    && self.y_axis.abs_diff_eq(other.y_axis, max_abs_diff)
-                    && self.z_axis.abs_diff_eq(other.z_axis, max_abs_diff)
-                    && self.w_axis.abs_diff_eq(other.w_axis, max_abs_diff)
+                self.0.abs_diff_eq(&other.0, max_abs_diff)
             }
         }
 

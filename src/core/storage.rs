@@ -27,17 +27,17 @@ pub struct XYZW<T> {
 
 #[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
 #[repr(C)]
-pub struct XYZx3<T> {
-    pub x_axis: XYZ<T>,
-    pub y_axis: XYZ<T>,
-    pub z_axis: XYZ<T>,
+pub struct Vector2x2<V2> {
+    pub x_axis: V2,
+    pub y_axis: V2,
 }
 
 #[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
 #[repr(C)]
-pub struct Vector2x2<V2> {
-    pub x_axis: V2,
-    pub y_axis: V2,
+pub struct Vector3x3<V3> {
+    pub x_axis: V3,
+    pub y_axis: V3,
+    pub z_axis: V3,
 }
 
 #[derive(Clone, Copy, Default, PartialEq, PartialOrd)]

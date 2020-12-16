@@ -101,6 +101,7 @@ impl Matrix2x2<f32, XY<f32>> for __m128 {
 }
 
 impl FloatMatrix2x2<f32, XY<f32>> for __m128 {
+    #[inline]
     fn abs_diff_eq(&self, other: &Self, max_abs_diff: f32) -> bool {
         FloatVector4::abs_diff_eq(*self, *other, max_abs_diff)
     }

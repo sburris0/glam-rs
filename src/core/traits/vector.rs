@@ -238,6 +238,7 @@ pub trait FloatVector2<T: FloatEx>: FloatVector<T> + Vector2<T> {
         (self.length_squared() - T::ONE).abs() <= T::from_f64(1e-6)
     }
 
+    #[inline]
     fn abs_diff_eq(self, other: Self, max_abs_diff: T) -> bool
     where
         <Self as Vector<T>>::Mask: MaskVector2,
@@ -291,6 +292,7 @@ pub trait FloatVector3<T: FloatEx>: FloatVector<T> + Vector3<T> {
         (self.length_squared() - T::ONE).abs() <= T::from_f64(1e-6)
     }
 
+    #[inline]
     fn abs_diff_eq(self, other: Self, max_abs_diff: T) -> bool
     where
         <Self as Vector<T>>::Mask: MaskVector3,
@@ -334,6 +336,7 @@ pub trait FloatVector4<T: FloatEx>: FloatVector<T> + Vector4<T> {
         (self.length_squared() - T::ONE).abs() <= T::from_f64(1e-6)
     }
 
+    #[inline]
     fn abs_diff_eq(self, other: Self, max_abs_diff: T) -> bool
     where
         <Self as Vector<T>>::Mask: MaskVector4,

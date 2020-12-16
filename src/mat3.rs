@@ -1,4 +1,7 @@
-use crate::core::traits::matrix::{FloatMatrix3x3, Matrix3x3, MatrixConst};
+use crate::core::{
+    storage::{Vector3x3, XYZ},
+    traits::matrix::{FloatMatrix3x3, Matrix3x3, MatrixConst},
+};
 use crate::{DQuat, DVec2, DVec3, Quat, Vec2, Vec3, Vec3A, Vec3ASwizzles};
 #[cfg(not(target_arch = "spirv"))]
 use core::fmt;
@@ -13,13 +16,13 @@ use std::iter::{Product, Sum};
 macro_rules! impl_mat3 {
     ($new:ident, $mat3:ident, $vec3: ident, $vec2:ident, $quat:ident, $t:ty, $inner:ident) => {
         /// Creates a `$mat3` from three column vectors.
-        #[inline]
+        #[inline(always)]
         pub fn $new(x_axis: $vec3, y_axis: $vec3, z_axis: $vec3) -> $mat3 {
             $mat3::from_cols(x_axis, y_axis, z_axis)
         }
 
         impl Default for $mat3 {
-            #[inline]
+            #[inline(always)]
             fn default() -> Self {
                 Self($inner::IDENTITY)
             }
@@ -140,9 +143,10 @@ macro_rules! impl_mat3 {
                 ))
             }
 
-            #[inline]
+            #[inline(always)]
             /// Creates a 3x3 rotation matrix from the given quaternion.
             pub fn from_quat(rotation: $quat) -> Self {
+                // TODO: SIMD?
                 Self($inner::from_quaternion(rotation.0.into()))
             }
 
@@ -297,7 +301,7 @@ macro_rules! impl_mat3 {
             /// Transforms the given `$vec2` as 2D point.
             /// This is the equivalent of multiplying the `$vec2` as a `$vec3` where `z`
             /// is `1.0`.
-            #[inline]
+            #[inline(always)]
             pub fn transform_point2(&self, other: $vec2) -> $vec2 {
                 self.transform_point2_as_vec3a(other)
             }
@@ -305,7 +309,7 @@ macro_rules! impl_mat3 {
             /// Transforms the given `$vec2` as 2D vector.
             /// This is the equivalent of multiplying the `$vec2` as a `$vec3` where `z`
             /// is `0.0`.
-            #[inline]
+            #[inline(always)]
             pub fn transform_vector2(&self, other: $vec2) -> $vec2 {
                 self.transform_vector2_as_vec3a(other)
             }
@@ -319,23 +323,21 @@ macro_rules! impl_mat3 {
             ///
             /// For more on floating point comparisons see
             /// https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
-            #[inline]
+            #[inline(always)]
             pub fn abs_diff_eq(&self, other: Self, max_abs_diff: $t) -> bool {
-                self.x_axis.abs_diff_eq(other.x_axis, max_abs_diff)
-                    && self.y_axis.abs_diff_eq(other.y_axis, max_abs_diff)
-                    && self.z_axis.abs_diff_eq(other.z_axis, max_abs_diff)
+                self.0.abs_diff_eq(&other.0, max_abs_diff)
             }
         }
 
         impl AsRef<[$t; 9]> for $mat3 {
-            #[inline]
+            #[inline(always)]
             fn as_ref(&self) -> &[$t; 9] {
                 unsafe { &*(self as *const Self as *const [$t; 9]) }
             }
         }
 
         impl AsMut<[$t; 9]> for $mat3 {
-            #[inline]
+            #[inline(always)]
             fn as_mut(&mut self) -> &mut [$t; 9] {
                 unsafe { &mut *(self as *mut Self as *mut [$t; 9]) }
             }
@@ -343,7 +345,7 @@ macro_rules! impl_mat3 {
 
         impl Add<$mat3> for $mat3 {
             type Output = Self;
-            #[inline]
+            #[inline(always)]
             fn add(self, other: Self) -> Self {
                 self.add_mat3(&other)
             }
@@ -351,7 +353,7 @@ macro_rules! impl_mat3 {
 
         impl Sub<$mat3> for $mat3 {
             type Output = Self;
-            #[inline]
+            #[inline(always)]
             fn sub(self, other: Self) -> Self {
                 self.sub_mat3(&other)
             }
@@ -359,7 +361,7 @@ macro_rules! impl_mat3 {
 
         impl Mul<$mat3> for $mat3 {
             type Output = Self;
-            #[inline]
+            #[inline(always)]
             fn mul(self, other: Self) -> Self {
                 self.mul_mat3(&other)
             }
@@ -367,7 +369,7 @@ macro_rules! impl_mat3 {
 
         impl Mul<$vec3> for $mat3 {
             type Output = $vec3;
-            #[inline]
+            #[inline(always)]
             fn mul(self, other: $vec3) -> $vec3 {
                 self.mul_vec3(other)
             }
@@ -375,7 +377,7 @@ macro_rules! impl_mat3 {
 
         impl Mul<$mat3> for $t {
             type Output = $mat3;
-            #[inline]
+            #[inline(always)]
             fn mul(self, other: $mat3) -> $mat3 {
                 other.mul_scalar(self)
             }
@@ -383,7 +385,7 @@ macro_rules! impl_mat3 {
 
         impl Mul<$t> for $mat3 {
             type Output = Self;
-            #[inline]
+            #[inline(always)]
             fn mul(self, other: $t) -> Self {
                 self.mul_scalar(other)
             }
@@ -411,7 +413,7 @@ macro_rules! impl_mat3 {
     };
 }
 
-type InnerF32 = crate::core::storage::XYZx3<f32>;
+type InnerF32 = Vector3x3<XYZ<f32>>;
 
 /// A 3x3 column major matrix.
 #[derive(Clone, Copy)]
@@ -462,7 +464,7 @@ impl Mul<Vec3A> for Mat3 {
     }
 }
 
-type InnerF64 = crate::core::storage::XYZx3<f64>;
+type InnerF64 = Vector3x3<XYZ<f64>>;
 
 /// A 3x3 column major matrix.
 #[derive(Clone, Copy)]

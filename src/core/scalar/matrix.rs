@@ -1,5 +1,5 @@
 use crate::core::{
-    storage::{Vector2x2, Vector4x4, XYZx3, XY, XYZ, XYZW},
+    storage::{Vector2x2, Vector3x3, Vector4x4, XY, XYZ, XYZW},
     traits::{
         matrix::{
             FloatMatrix2x2, FloatMatrix3x3, FloatMatrix4x4, Matrix, Matrix2x2, Matrix3x3,
@@ -80,16 +80,6 @@ impl<T: NumEx> Matrix2x2<T, XY<T>> for Vector2x2<XY<T>> {
 }
 
 impl<T: FloatEx> FloatMatrix2x2<T, XY<T>> for Vector2x2<XY<T>> {
-    fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool {
-        self.x_axis.abs_diff_eq(other.x_axis, max_abs_diff)
-            && self.y_axis.abs_diff_eq(other.y_axis, max_abs_diff)
-    }
-
-    // #[inline]
-    // fn is_finite(&self) -> bool {
-    //     self.x_axis.is_finite() && self.y_axis.is_finite()
-    // }
-
     #[inline]
     fn inverse(&self) -> Self {
         let inv_det = {
@@ -106,7 +96,7 @@ impl<T: FloatEx> FloatMatrix2x2<T, XY<T>> for Vector2x2<XY<T>> {
     }
 }
 
-impl<T: NumEx> MatrixConst for XYZx3<T> {
+impl<T: NumEx> MatrixConst for Vector3x3<XYZ<T>> {
     const ZERO: Self = Self {
         x_axis: XYZ::ZERO,
         y_axis: XYZ::ZERO,
@@ -119,36 +109,25 @@ impl<T: NumEx> MatrixConst for XYZx3<T> {
     };
 }
 
-impl<T: NumEx> Matrix<T> for XYZx3<T> {}
+impl<T: NumEx> Matrix<T> for Vector3x3<XYZ<T>> {}
 
-impl<T: NumEx> Matrix3x3<T> for XYZx3<T> {
-    fn new(m00: T, m01: T, m02: T, m10: T, m11: T, m12: T, m20: T, m21: T, m22: T) -> Self {
+impl<T: NumEx> Matrix3x3<T, XYZ<T>> for Vector3x3<XYZ<T>> {
+    #[inline(always)]
+    fn from_cols(x_axis: XYZ<T>, y_axis: XYZ<T>, z_axis: XYZ<T>) -> Self {
         Self {
-            x_axis: XYZ {
-                x: m00,
-                y: m01,
-                z: m02,
-            },
-            y_axis: XYZ {
-                x: m10,
-                y: m11,
-                z: m12,
-            },
-            z_axis: XYZ {
-                x: m20,
-                y: m21,
-                z: m22,
-            },
+            x_axis,
+            y_axis,
+            z_axis,
         }
     }
 
     #[inline(always)]
-    fn deref(&self) -> &XYZx3<T> {
+    fn deref(&self) -> &Vector3x3<XYZ<T>> {
         self
     }
 
     #[inline(always)]
-    fn deref_mut(&mut self) -> &mut XYZx3<T> {
+    fn deref_mut(&mut self) -> &mut Vector3x3<XYZ<T>> {
         self
     }
 
@@ -217,13 +196,7 @@ impl<T: NumEx> Matrix3x3<T> for XYZx3<T> {
     }
 }
 
-impl<T: FloatEx> FloatMatrix3x3<T> for XYZx3<T> {
-    fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool {
-        self.x_axis.abs_diff_eq(other.x_axis, max_abs_diff)
-            && self.y_axis.abs_diff_eq(other.y_axis, max_abs_diff)
-            && self.z_axis.abs_diff_eq(other.z_axis, max_abs_diff)
-    }
-
+impl<T: FloatEx> FloatMatrix3x3<T, XYZ<T>> for Vector3x3<XYZ<T>> {
     fn inverse(&self) -> Self {
         let tmp0 = self.y_axis.cross(self.z_axis);
         let tmp1 = self.z_axis.cross(self.x_axis);
